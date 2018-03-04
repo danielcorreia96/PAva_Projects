@@ -8,73 +8,69 @@ import java.util.stream.Collectors;
 import static java.lang.System.out;
 
 public class Shell {
-    private static Object previous_result = null;
+    private static Object previous = null;
     private static Scanner sc = new Scanner(System.in);
-    private static List<String> information_types = Arrays.asList("Implementation", "Annotation", "Specification", "Name");
+    private static Map<String,Object> objectMap = new HashMap<>();
 
     public static void main(String... args){
-        boolean active_shell = true;
-        Map<String,Object> objectMap = new HashMap<>();
-        while (active_shell){
+        final Map<String, Runnable> commands = new HashMap<>(){{
+            put("Class", Shell::getClassByName);
+            put("Set", Shell::setVariable);
+            put("Get", () -> previous = objectMap.get(sc.next()));
+            put("Index", () -> previous = ((Object[]) previous)[Integer.parseInt(sc.next())]);
+            put("Package", Shell::printPackageInformation);
+            put("Exit", () -> { out.println("Goodbye!"); System.exit(1); } );
+        }};
+
+        while (true) {
             out.print("Command:> ");
             String command = sc.next();
-            switch (command) {
-                case "Class":
-                    String class_name = sc.next();
-                    try {
-                        previous_result = Class.forName(class_name);
-                        out.println(previous_result);
-                    } catch (ClassNotFoundException e) {
-                        out.println("Unable to find class " + class_name);
-                    }
-                    break;
-
-                case "Set":
-                    objectMap.put(sc.next(),previous_result);
-                    out.println("Saved name for object of type " + previous_result.getClass());
-                    out.println(previous_result);
-                    break;
-
-                case "Get":
-                    previous_result = objectMap.get(sc.next());
-                    out.println(previous_result);
-                    break;
-
-                case "Index":
-                    previous_result = ((Object[]) Objects.requireNonNull(previous_result))[Integer.parseInt(sc.next())];
-                    out.println(previous_result);
-                    break;
-
-                case "Package":
-                    String package_info = sc.nextLine().trim();
-                    out.print("Package information (of ["+ previous_result.getClass() + "]");
-                    out.print(" of previous object [" + previous_result +"]):");
-                    out.println(" package " + previous_result.getClass().getPackageName());
-                    printPackageInformation(previous_result.getClass().getPackage(), package_info);
-                    break;
-
-                case "Exit":
-                    out.println("Closing introspection shell");
-                    active_shell = false;
-                    break;
-
-                default:
-                    out.println("Trying generic command " + command);
+            try {
+                if (commands.get(command) == null)
                     callGenericCommand(command);
-                    if (previous_result.getClass().isArray()){
-                        for (Object o: (Object[]) previous_result) {
-                            out.println(o);
-                        }
-                    }
-                    else {
-                        out.println(previous_result);
-                    }
-                    break;
+                else
+                    commands.get(command).run();
             }
+            catch (Exception e) {
+                out.println(e.getMessage());
+            }
+            printPreviousResult();
         }
     }
 
-    private static void printPackageInformation(Package aPackage, String package_info) {
+    private static void setVariable() {
+        objectMap.put(sc.next(), previous);
+        out.printf("Saved name for object of type %s%n", previous.getClass());
+    }
+
+    private static void getClassByName() {
+        try {
+            previous = Class.forName(sc.next());
+        } catch (ClassNotFoundException e) {
+            out.println("Unable to find class");
+        }
+    }
+
+    private static void printPreviousResult() {
+        if (previous.getClass().isArray()){
+            Arrays.stream((Object[]) previous).forEach(out::println);
+        }
+        else {
+            out.println(previous);
+        }
+    }
+
+    private static void printPackageInformation() {
+        final Package aPackage = previous.getClass().getPackage();
+        final String package_info = sc.nextLine().trim();
+        final List<String> information_types = Arrays.asList("Implementation", "Annotation", "Specification", "Name");
+
+        out.printf("Package information (of [%s] of previous object [%s]): package %s%n",
+                previous.getClass(),
+                previous,
+                previous.getClass().getPackageName()
+        );
+
         List<Method> methodList = Arrays.stream(aPackage.getClass().getMethods())
                 .filter(method -> method.getParameterCount() == 0)
                 .filter(method -> !method.getReturnType().equals(Void.TYPE))
@@ -88,11 +84,12 @@ public class Shell {
 
         methodList.forEach(method -> {
             try {
-                out.print(method.getName() + ": ");
                 Object result = method.invoke(aPackage);
 
-                if (result == null) out.println("Result Non Defined");
-                else out.println(result);
+                if (result == null)
+                    out.printf("%s: Result Non Defined%n", method.getName());
+                else
+                    out.printf("%s: %s%n", method.getName(), result);
 
             } catch (IllegalAccessException | InvocationTargetException e) {
                 e.printStackTrace();
@@ -100,24 +97,15 @@ public class Shell {
         });
     }
 
-    private static void callGenericCommand(String command) {
-        try {
-            String method_args = sc.nextLine();
-            Method method = Objects.requireNonNull(previous_result).getClass().getMethod(command);
-            if (method_args.isEmpty()){
-                previous_result = method.invoke(previous_result);
-            }
-            else {
-                previous_result = method.invoke(previous_result, (Object) method_args.split(" "));
-            }
-        } catch (NoSuchMethodException e) {
-            out.println("Unable to find method " + e.getMessage());
-        } catch (IllegalAccessException e) {
-            out.println("Unable to access method/constructor of the given class");
-            e.printStackTrace();
-        } catch (InvocationTargetException e) {
-            out.println("Exception thrown by underlying invoked method");
-            e.printStackTrace();
+    private static void callGenericCommand(String command) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
+        out.println("Trying generic command " + command);
+        String method_args = sc.nextLine();
+        Method method = Objects.requireNonNull(previous).getClass().getMethod(command);
+        if (method_args.isEmpty()){
+            previous = method.invoke(previous);
+        }
+        else {
+            previous = method.invoke(previous, (Object) method_args.split(" "));
         }
     }
 }
