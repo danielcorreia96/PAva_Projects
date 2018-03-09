@@ -2,9 +2,14 @@ package pt.ist.ap.labs;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Scanner;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 import static java.lang.System.out;
 
@@ -12,30 +17,6 @@ public class Shell {
     private static Object previous = null;
     private static Scanner sc = new Scanner(System.in);
     private static Map<String,Object> objectMap = new HashMap<>();
-
-    private static final Map<String, Class<?>> PRIMITIVES_MAP = new HashMap<>(){{
-        put("int", Integer.class);
-        put("double", Double.class);
-        put("float", Float.class);
-        put("char", Character.class);
-        put("boolean", Boolean.class);
-        put("byte", Byte.class);
-        put("long", Long.class);
-        put("short", Short.class);
-        put("void", Void.class);
-    }};
-
-    private static final Map<String, Class<?>> PRIMITIVES_CLASSES = new HashMap<>(){{
-        put("int", int.class);
-        put("double", double.class);
-        put("float", float.class);
-        put("char", char.class);
-        put("boolean", boolean.class);
-        put("byte", byte.class);
-        put("long", long.class);
-        put("short", short.class);
-        put("void", void.class);
-    }};
 
     public static void main(String... args){
         final Map<String, Runnable> commands = new HashMap<>(){{
@@ -50,14 +31,13 @@ public class Shell {
         while (true) {
             out.print("Command:> ");
             String command = sc.next();
-            try {
-                if (commands.get(command) == null)
-                    callGenericCommand(command);
-                else
-                    commands.get(command).run();
+            if (commands.get(command) == null){
+                if (previous == null)
+                    out.println("Can't call generic command on a null previous result");
+                else callGenericCommand(command);
             }
-            catch (Exception e) {
-                out.printf("SOME ERROR: %s",e.getMessage());
+            else {
+                commands.get(command).run();
             }
             printPreviousResult();
         }
@@ -93,10 +73,7 @@ public class Shell {
         final List<String> information_types = Arrays.asList("Implementation", "Annotation", "Specification", "Name");
 
         out.printf("Package information (of [%s] of previous object [%s]): package %s%n",
-                previous.getClass(),
-                previous,
-                previous.getClass().getPackageName()
-        );
+                previous.getClass(), previous, previous.getClass().getPackageName());
 
         List<Method> methodList = Arrays.stream(aPackage.getClass().getMethods())
                 .filter(method -> method.getParameterCount() == 0)
@@ -128,71 +105,39 @@ public class Shell {
         });
     }
 
-    private static void callGenericCommand(String command) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
+    private static void callGenericCommand(String command) {
         out.println("Trying generic command " + command);
         String method_args = sc.nextLine();
-        if (method_args.isEmpty()){
-            Method method = Objects.requireNonNull(previous).getClass().getMethod(command);
-            previous = method.invoke(previous);
-        }
-        else {
-            // only accept one int for now
-            String[] args = method_args.trim().split(" ");
-
-            if (args.length % 2 == 0){
-                Class[] types = getTypesFromArgs(args);
-
-                Method method;
-                if (previous instanceof Class<?>){
-                    method = ((Class) previous).getMethod(command, types);
-                }
-                else{
-                    method = Objects.requireNonNull(previous).getClass().getMethod(command, types);
-                }
-
-                Object[] params = getParamsFromArgs(args);
-
-                previous = method.invoke(previous, params);
+        try {
+            if (method_args.isEmpty()) {
+                // generic call with no arguments
+                previous = previous.getClass().getMethod(command).invoke(previous);
+                return;
             }
+
+            String[] args = method_args.trim().split(" ");
+            if (args.length % 2 != 0) {
+                out.println("Number of arguments is not even");
+                return;
+            }
+
+            List<Class> tempTypes = new ArrayList<>();
+            List<Object> tempParams = new ArrayList<>();
+            for (int i = 0; i < args.length; i += 2) {
+                tempTypes.add(PrimitiveUtils.getTypeFromArg(args[i]));
+                tempParams.add(PrimitiveUtils.getParamFromArgsPair(args[i], args[i + 1]));
+            }
+
+            Method method;
+            if (previous instanceof Class)
+                method = ((Class) previous).getMethod(command, tempTypes.toArray(new Class[0]));
+            else
+                method = previous.getClass().getMethod(command, tempTypes.toArray(new Class[0]));
+
+            previous = method.invoke(previous, tempParams.toArray());
         }
-    }
-
-    private static Object[] getParamsFromArgs(String[] args) {
-        return IntStream.range(0, args.length)
-                            .filter(i -> i % 2 != 0)
-                            .mapToObj(i -> {
-                                if (PRIMITIVES_MAP.containsKey(args[i-1])){
-                                    try {
-                                        return PRIMITIVES_MAP.get(args[i-1]).getMethod("valueOf", String.class).invoke(PRIMITIVES_MAP.get(args[i-1]), args[i]);
-                                    } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
-                                        e.printStackTrace();
-                                    }
-                                }
-                                try {
-                                    return Class.forName(args[i - 1]).getConstructor(String.class).newInstance(args[i]);
-                                } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException | ClassNotFoundException e) {
-                                    e.printStackTrace();
-                                }
-                                return null;
-                            })
-                            .toArray();
-    }
-
-    private static Class[] getTypesFromArgs(String[] args) {
-        return IntStream.range(0, args.length)
-                            .filter(i -> i % 2 == 0)
-                            .mapToObj(i -> {
-                                if (PRIMITIVES_CLASSES.containsKey(args[i])){
-                                    return PRIMITIVES_CLASSES.get(args[i]);
-                                }
-                                else{
-                                    try {
-                                        return Class.forName(args[i]);
-                                    } catch (ClassNotFoundException e) {
-                                        e.printStackTrace();
-                                    }
-                                }
-                                return null;
-                            }).toArray(Class[]::new);
+        catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
+            e.printStackTrace();
+        }
     }
 }
