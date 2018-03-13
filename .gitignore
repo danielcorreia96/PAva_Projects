@@ -3,7 +3,7 @@
 *.class
 *.jar
 
-
+.vscode/
 ### Gradle ###
 .gradle
 build/
