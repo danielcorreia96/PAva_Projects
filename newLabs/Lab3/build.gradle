@@ -21,10 +21,17 @@ dependencies {
     // This dependency is found on compile classpath of this component and consumers.
     compile 'com.google.guava:guava:23.0'
 
+    compile group: 'org.javassist', name: 'javassist', version: '3.22.0-GA'
+
     // Use JUnit test framework
     testCompile 'junit:junit:4.12'
 }
 
+jar {
+    manifest {
+        attributes 'Main-Class': 'RunTests'
+    }
+}
 // In this section you declare where to find the dependencies of your project
 repositories {
     // Use jcenter for resolving your dependencies.
@@ -33,9 +40,7 @@ repositories {
 }
 
 run {
-
-    // Pass args when running in console: gradle run -PappArgs="['arg1','arg2']"
-    if (project.hasProperty("appArgs")) {
-        args(appArgs.split(','))
-    }
+    //args 'TestSimple'
+    //args 'TestWithSetup'
+    args 'TestInheritance'
 }
