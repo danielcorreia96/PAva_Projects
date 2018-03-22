@@ -34,6 +34,7 @@ public class TestWithSetup {
         System.out.println("m8");
     }
 
+    @Test("s4")
     public static void m9() {
         System.out.println("m9");
     }
