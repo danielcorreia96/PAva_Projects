@@ -16,8 +16,8 @@ public class RunTests {
     private static int failed = 0;
 
     public static void main(String[] args) throws Exception {
-        Class target = Class.forName(args[0]);
-        Class superclass = target.getSuperclass();
+        Class<?> target = Class.forName(args[0]);
+        Class<?> superclass = target.getSuperclass();
 
         // Process annotations in target class hierarchy
         while (superclass != Object.class){
@@ -48,7 +48,7 @@ public class RunTests {
         }
     }
 
-    private static void processSetupAnnotations(Class clazz) {
+    private static void processSetupAnnotations(Class<?> clazz) {
         for (Method m: clazz.getDeclaredMethods()){
             if (m.isAnnotationPresent(Setup.class)){
                 m.setAccessible(true);
@@ -57,7 +57,7 @@ public class RunTests {
         }
     }
 
-    private static void processTestAnnotations(Class clazz) {
+    private static void processTestAnnotations(Class<?> clazz) {
         for (Method m : clazz.getDeclaredMethods()) {
             if (m.isAnnotationPresent(Test.class) && Modifier.isStatic(m.getModifiers())) {
                 m.setAccessible(true);
