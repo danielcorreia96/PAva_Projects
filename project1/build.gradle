@@ -15,7 +15,7 @@ plugins {
 }
 
 // Define the main class for the application
-mainClassName = 'App'
+mainClassName = 'meic.ist.pa.GenericFunctions.WithGenericFunction'
 
 dependencies {
     // This dependency is found on compile classpath of this component and consumers.
@@ -34,19 +34,41 @@ repositories {
     jcenter()
 }
 
+jar {
+    manifest {
+        attributes 'Main-Class': 'meic.ist.pa.GenericFunctions.WithGenericFunction'
+    }
+    from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
+}
+
 task colorRun(type: JavaExec) {
     classpath = sourceSets.main.runtimeClasspath
-    main = "examples.color.ColorApp"
+    args = ["examples.color.ColorApp"] // working
+    main = "meic.ist.pa.GenericFunctions.WithGenericFunction"
 }
 
 task comRun(type: JavaExec) {
     classpath = sourceSets.main.runtimeClasspath
-    main = "examples.com.ComApp"
+    args = ["examples.com.ComApp"]  // working
+    main = "meic.ist.pa.GenericFunctions.WithGenericFunction"
+}
+
+task deviceRun(type: JavaExec) {
+    classpath = sourceSets.main.runtimeClasspath
+    args = ["examples.device.ShapeApp"] // working
+    main = "meic.ist.pa.GenericFunctions.WithGenericFunction"
+}
+
+task runAll {
+    dependsOn 'colorRun'
+    dependsOn 'comRun'
+    dependsOn 'deviceRun'
 }
 
 task withGF(type: JavaExec) {
     classpath = sourceSets.main.runtimeClasspath
-    args = ["examples.com.ComApp"]
-//    args = ["examples.color.ColorApp"]
+//    args = ["examples.device.ShapeApp"] // working
+    args = ["examples.com.ComApp"]  // working
+//    args = ["examples.color.ColorApp"] // working
     main = "meic.ist.pa.GenericFunctions.WithGenericFunction"
 }

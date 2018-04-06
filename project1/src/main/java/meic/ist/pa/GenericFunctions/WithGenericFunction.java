@@ -14,6 +14,7 @@ public class WithGenericFunction {
             ClassPool pool = ClassPool.getDefault();
             pool.importPackage("java.lang.reflect");
             Loader classLoader = new Loader();
+
             classLoader.addTranslator(pool, translator);
 
             String[] restArgs = new String[args.length - 1];
