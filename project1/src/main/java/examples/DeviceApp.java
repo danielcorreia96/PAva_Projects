@@ -1,4 +1,4 @@
-package examples.device;
+package examples;
 
 import meic.ist.pa.GenericFunctions.GenericFunction;
 
@@ -54,7 +54,7 @@ class Screen extends Device {}
 
 class Printer extends Device {}
 
-public class ShapeApp {
+public class DeviceApp {
 
     public static void main(String[] args) {
         Device[] devices = new Device[] { new Screen(), new Printer() };

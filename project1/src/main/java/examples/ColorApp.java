@@ -1,4 +1,4 @@
-package examples.color;
+package examples;
 
 import meic.ist.pa.GenericFunctions.GenericFunction;
 
@@ -30,5 +30,20 @@ class Color {
 
     public static String mix(Blue c1, Yellow c2) {
         return "Green";
+    }
+}
+
+class Red extends Color {}
+class Blue extends Color {}
+class Yellow extends Color {}
+
+public class ColorApp {
+    public static void main(String[] args) {
+        Color[] colors = new Color[] { new Red(), new Blue(), new Yellow() };
+        for (Color c1 : colors) {
+            for (Color c2 : colors) {
+                System.out.println(Color.mix(c1,c2));
+            }
+        }
     }
 }

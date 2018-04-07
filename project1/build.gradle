@@ -41,21 +41,32 @@ jar {
     from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
 }
 
+test {
+    //we want display the following test events
+    testLogging {
+        events "PASSED", "FAILED", "SKIPPED"
+    }
+    reports {
+        junitXml.enabled = false
+        html.enabled = true
+    }
+}
+
 task colorRun(type: JavaExec) {
     classpath = sourceSets.main.runtimeClasspath
-    args = ["examples.color.ColorApp"] // working
+    args = ["examples.ColorApp"] // working
     main = "meic.ist.pa.GenericFunctions.WithGenericFunction"
 }
 
 task comRun(type: JavaExec) {
     classpath = sourceSets.main.runtimeClasspath
-    args = ["examples.com.ComApp"]  // working
+    args = ["examples.ComApp"]  // working
     main = "meic.ist.pa.GenericFunctions.WithGenericFunction"
 }
 
 task deviceRun(type: JavaExec) {
     classpath = sourceSets.main.runtimeClasspath
-    args = ["examples.device.ShapeApp"] // working
+    args = ["examples.DeviceApp"] // working
     main = "meic.ist.pa.GenericFunctions.WithGenericFunction"
 }
 
@@ -67,8 +78,8 @@ task runAll {
 
 task withGF(type: JavaExec) {
     classpath = sourceSets.main.runtimeClasspath
-//    args = ["examples.device.ShapeApp"] // working
-    args = ["examples.com.ComApp"]  // working
-//    args = ["examples.color.ColorApp"] // working
+//    args = ["examples.DeviceApp"] // working
+    args = ["examples.ComApp"]  // working
+//    args = ["examples.ColorApp"] // working
     main = "meic.ist.pa.GenericFunctions.WithGenericFunction"
 }
