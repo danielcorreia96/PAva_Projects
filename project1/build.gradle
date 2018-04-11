@@ -70,6 +70,12 @@ task deviceRun(type: JavaExec) {
     main = "meic.ist.pa.GenericFunctions.WithGenericFunction"
 }
 
+task explainRun(type: JavaExec) {
+    classpath = sourceSets.main.runtimeClasspath
+    args = ["examples.ExplainApp"] // TODO: before and after methods
+    main = "meic.ist.pa.GenericFunctions.WithGenericFunction"
+}
+
 task runAll {
     dependsOn 'colorRun'
     dependsOn 'comRun'
