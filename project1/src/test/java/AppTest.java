@@ -65,6 +65,15 @@ public class AppTest {
                 "draw a circle on screen!\n" +
                 "draw a line on printer!\n" +
                 "draw a circle on printer!\n";
-        assertEquals("Wrong output",expected, errContent.toString());
+        assertEquals("Wrong output",expected, outContent.toString());
+    }
+
+    @Test public void testExplainApp() throws Throwable {
+        WithGenericFunction.main(new String[]{"examples.ExplainApp"});
+        String expected =
+                "Hello is a string.\n" +
+                "The number 1 is an integer.\n" +
+                "The number 2.0 is a double.\n";
+        assertEquals("Wrong output",expected, outContent.toString());
     }
 }

@@ -36,7 +36,7 @@ repositories {
 
 jar {
     manifest {
-        attributes 'Main-Class': 'meic.ist.pa.GenericFunctions.WithGenericFunction'
+        attributes 'Main-Class': mainClassName
     }
     from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
 }
@@ -52,40 +52,45 @@ test {
     }
 }
 
-task colorRun(type: JavaExec) {
+def EXAMPLES_GROUP = "Examples Apps"
+
+task runColor(type: JavaExec) {
+    group = EXAMPLES_GROUP
+    description = "Runs ColorApp example"
     classpath = sourceSets.main.runtimeClasspath
     args = ["examples.ColorApp"] // working
-    main = "meic.ist.pa.GenericFunctions.WithGenericFunction"
+    main = mainClassName
 }
 
-task comRun(type: JavaExec) {
+task runCom(type: JavaExec) {
+    group = EXAMPLES_GROUP
+    description = "Runs ComApp example"
     classpath = sourceSets.main.runtimeClasspath
     args = ["examples.ComApp"]  // working
-    main = "meic.ist.pa.GenericFunctions.WithGenericFunction"
+    main = mainClassName
 }
 
-task deviceRun(type: JavaExec) {
+task runDevice(type: JavaExec) {
+    group = EXAMPLES_GROUP
+    description = "Runs DeviceApp example"
     classpath = sourceSets.main.runtimeClasspath
     args = ["examples.DeviceApp"] // working
-    main = "meic.ist.pa.GenericFunctions.WithGenericFunction"
+    main = mainClassName
 }
 
-task explainRun(type: JavaExec) {
+task runExplain(type: JavaExec) {
+    group = EXAMPLES_GROUP
+    description = "Runs ExplainApp example"
     classpath = sourceSets.main.runtimeClasspath
-    args = ["examples.ExplainApp"] // TODO: before and after methods
-    main = "meic.ist.pa.GenericFunctions.WithGenericFunction"
+    args = ["examples.ExplainApp"]
+    main = mainClassName
 }
 
 task runAll {
-    dependsOn 'colorRun'
-    dependsOn 'comRun'
-    dependsOn 'deviceRun'
-}
-
-task withGF(type: JavaExec) {
-    classpath = sourceSets.main.runtimeClasspath
-//    args = ["examples.DeviceApp"] // working
-    args = ["examples.ComApp"]  // working
-//    args = ["examples.ColorApp"] // working
-    main = "meic.ist.pa.GenericFunctions.WithGenericFunction"
+    group = EXAMPLES_GROUP
+    description = "Runs all examples apps"
+    dependsOn 'runColor'
+    dependsOn 'runCom'
+    dependsOn 'runDevice'
+    dependsOn 'runExplain'
 }

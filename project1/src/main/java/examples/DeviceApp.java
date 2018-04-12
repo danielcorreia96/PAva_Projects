@@ -11,40 +11,40 @@ class Circle extends Shape {}
 @GenericFunction
 class Device {
     static Object draw(Device d, Shape s){
-        System.err.println("draw what where?");
+        System.out.println("draw what where?");
         return "";
     }
     static Object draw(Device d, Line l){
-        System.err.println("draw a line where?");
+        System.out.println("draw a line where?");
         return "";
     }
     static Object draw(Device d, Circle c){
-        System.err.println("draw a circle where?");
+        System.out.println("draw a circle where?");
         return "";
     }
 
     static Object draw(Screen d, Shape s){
-        System.err.println("draw a what on screen?");
+        System.out.println("draw a what on screen?");
         return "";
     }
     static Object draw(Screen d, Line l){
-        System.err.println("draw a line on screen!");
+        System.out.println("draw a line on screen!");
         return "";
     }
     static Object draw(Screen d, Circle c){
-        System.err.println("draw a circle on screen!");
+        System.out.println("draw a circle on screen!");
         return "";
     }
     static Object draw(Printer d, Shape s){
-        System.err.println("draw what on printer?");
+        System.out.println("draw what on printer?");
         return "";
     }
     static Object draw(Printer d, Line l){
-        System.err.println("draw a line on printer!");
+        System.out.println("draw a line on printer!");
         return "";
     }
     static Object draw(Printer d, Circle c){
-        System.err.println("draw a circle on printer!");
+        System.out.println("draw a circle on printer!");
         return "";
     }
 
