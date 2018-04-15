@@ -12,7 +12,7 @@ import java.io.PrintStream;
 
 import static org.junit.Assert.assertEquals;
 
-public class AppTest {
+public class ExamplesTests {
     private final ByteArrayOutputStream outContent = new ByteArrayOutputStream();
     private final ByteArrayOutputStream errContent = new ByteArrayOutputStream();
 
@@ -29,7 +29,7 @@ public class AppTest {
     }
 
     @Test public void testComApp() throws Throwable {
-        WithGenericFunction.main(new String[]{"examples.ComApp"});
+        WithGenericFunction.main(new String[]{"examples.enunciado.ComApp"});
         String expected =
                 "Combine(Hello,World) -> Hello, World!\n" +
                 "Combine(Hello,2) -> HelloHello\n" +
@@ -44,7 +44,7 @@ public class AppTest {
     }
 
     @Test public void testColorApp() throws Throwable {
-        WithGenericFunction.main(new String[]{"examples.ColorApp"});
+        WithGenericFunction.main(new String[]{"examples.enunciado.ColorApp"});
         String expected =
                 "More red\n" +
                 "Magenta\n" +
@@ -59,7 +59,7 @@ public class AppTest {
     }
 
     @Test public void testDeviceApp() throws Throwable {
-        WithGenericFunction.main(new String[]{"examples.DeviceApp"});
+        WithGenericFunction.main(new String[]{"examples.enunciado.DeviceApp"});
         String expected =
                 "draw a line on screen!\n" +
                 "draw a circle on screen!\n" +
@@ -69,11 +69,16 @@ public class AppTest {
     }
 
     @Test public void testExplainApp() throws Throwable {
-        WithGenericFunction.main(new String[]{"examples.ExplainApp"});
+        WithGenericFunction.main(new String[]{"examples.enunciado.ExplainApp"});
         String expected =
                 "Hello is a string.\n" +
                 "The number 1 is an integer.\n" +
                 "The number 2.0 is a double.\n";
         assertEquals("Wrong output",expected, outContent.toString());
     }
+
+//    @Test public void testOldSimpleAddApp() throws Throwable {
+//        WithGenericFunction.main(new String[]{"examples.oldTests.SimpleAddApp"});
+//        assert true;
+//    }
 }

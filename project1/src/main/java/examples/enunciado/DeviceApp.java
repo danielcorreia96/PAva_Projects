@@ -1,4 +1,4 @@
-package examples;
+package examples.enunciado;
 
 import meic.ist.pa.GenericFunctions.GenericFunction;
 

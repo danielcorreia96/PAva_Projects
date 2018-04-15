@@ -108,9 +108,11 @@ public class GenericFunctionTranslator implements Translator{
                         "       java.util.List class_tree = new java.util.ArrayList();" +
                         "       Class orig_class = (Class)param_classes.get(i);" +
                         "       class_tree.add(orig_class);" +
+                        "       class_tree.addAll(java.util.Arrays.asList(orig_class.getInterfaces()));" +
                         "       while(!orig_class.equals(Object.class)){" +
                         "           orig_class = orig_class.getSuperclass();" +
                         "           class_tree.add(orig_class);" +
+                        "           class_tree.addAll(java.util.Arrays.asList(orig_class.getInterfaces()));" +
                         "       }" +
                         "       params_all_supers.add(class_tree);" +
                         "   }" +
@@ -135,7 +137,6 @@ public class GenericFunctionTranslator implements Translator{
                         "}"
                 , ctClass);
         ctClass.addMethod(getSuperCombinationsMethod);
-
         // newMethod = getClassNames
         CtMethod getClassNames = CtNewMethod.make(
                 "public static java.util.List getClassNames(Object[] params){" +

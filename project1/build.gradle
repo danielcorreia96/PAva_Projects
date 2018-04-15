@@ -56,9 +56,9 @@ def EXAMPLES_GROUP = "Examples Apps"
 
 task runColor(type: JavaExec) {
     group = EXAMPLES_GROUP
-    description = "Runs ColorApp example"
+    description = "Runs enunciado.ColorApp example"
     classpath = sourceSets.main.runtimeClasspath
-    args = ["examples.ColorApp"] // working
+    args = ["examples.enunciado.ColorApp"] // working
     main = mainClassName
 }
 
@@ -66,7 +66,7 @@ task runCom(type: JavaExec) {
     group = EXAMPLES_GROUP
     description = "Runs ComApp example"
     classpath = sourceSets.main.runtimeClasspath
-    args = ["examples.ComApp"]  // working
+    args = ["examples.enunciado.ComApp"]  // working
     main = mainClassName
 }
 
@@ -74,7 +74,7 @@ task runDevice(type: JavaExec) {
     group = EXAMPLES_GROUP
     description = "Runs DeviceApp example"
     classpath = sourceSets.main.runtimeClasspath
-    args = ["examples.DeviceApp"] // working
+    args = ["examples.enunciado.DeviceApp"] // working
     main = mainClassName
 }
 
@@ -82,7 +82,23 @@ task runExplain(type: JavaExec) {
     group = EXAMPLES_GROUP
     description = "Runs ExplainApp example"
     classpath = sourceSets.main.runtimeClasspath
-    args = ["examples.ExplainApp"]
+    args = ["examples.enunciado.ExplainApp"]
+    main = mainClassName
+}
+
+task runOldSimpleAddApp(type: JavaExec) {
+    group = EXAMPLES_GROUP
+    description = "Runs oldTests.SimpleAddApp example"
+    classpath = sourceSets.main.runtimeClasspath
+    args = ["examples.oldTests.SimpleAddApp"]
+    main = mainClassName
+}
+
+task runMyImplementsColorApp(type: JavaExec) {
+    group = EXAMPLES_GROUP
+    description = "Runs myTests.ImplementsColorApp example"
+    classpath = sourceSets.main.runtimeClasspath
+    args = ["examples.myTests.ImplementsColorApp"]
     main = mainClassName
 }
 
@@ -93,4 +109,5 @@ task runAll {
     dependsOn 'runCom'
     dependsOn 'runDevice'
     dependsOn 'runExplain'
+    dependsOn 'runOldSimpleAddApp'
 }
