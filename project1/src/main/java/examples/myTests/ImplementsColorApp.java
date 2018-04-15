@@ -1,6 +1,6 @@
 package examples.myTests;
 
-import meic.ist.pa.GenericFunctions.GenericFunction;
+import ist.meic.pa.GenericFunctions.GenericFunction;
 
 @GenericFunction
 interface Color {

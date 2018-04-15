@@ -1,4 +1,4 @@
-package meic.ist.pa.GenericFunctions;
+package ist.meic.pa.GenericFunctionsExtended;
 
 import javassist.ClassPool;
 import javassist.Loader;

@@ -1,4 +1,4 @@
-package examples.enunciado;
+package examples.cachedTests;
 
 import ist.meic.pa.GenericFunctions.GenericFunction;
 
@@ -34,12 +34,21 @@ class Color {
 }
 
 class Red extends Color {}
+
 class Blue extends Color {}
+
 class Yellow extends Color {}
 
 public class ColorApp {
     public static void main(String[] args) {
         Color[] colors = new Color[] { new Red(), new Blue(), new Yellow() };
+        for (Color c1 : colors) {
+            for (Color c2 : colors) {
+                System.out.println(Color.mix(c1,c2));
+            }
+        }
+
+        System.out.println("\nNext method calls should use cached results\n");
         for (Color c1 : colors) {
             for (Color c2 : colors) {
                 System.out.println(Color.mix(c1,c2));

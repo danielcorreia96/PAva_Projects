@@ -15,7 +15,8 @@ plugins {
 }
 
 // Define the main class for the application
-mainClassName = 'meic.ist.pa.GenericFunctions.WithGenericFunction'
+mainClassName = 'ist.meic.pa.GenericFunctions.WithGenericFunction'
+def extendedmainClassName = 'ist.meic.pa.GenericFunctionsExtended.WithGenericFunction'
 
 dependencies {
     // This dependency is found on compile classpath of this component and consumers.
@@ -110,4 +111,73 @@ task runAll {
     dependsOn 'runDevice'
     dependsOn 'runExplain'
     dependsOn 'runOldSimpleAddApp'
+}
+
+task runExtendedColor(type: JavaExec) {
+    group = EXAMPLES_GROUP
+    description = "Runs extended version of enunciado.ColorApp example"
+    classpath = sourceSets.main.runtimeClasspath
+    args = ["examples.enunciado.ColorApp"] // working
+    main = extendedmainClassName
+}
+
+task runExtendedExplain(type: JavaExec) {
+    group = EXAMPLES_GROUP
+    description = "Runs extended version of enunciado.ExplainApp example"
+    classpath = sourceSets.main.runtimeClasspath
+    args = ["examples.enunciado.ExplainApp"] // working
+    main = extendedmainClassName
+}
+
+task runExtendedCachedColor(type: JavaExec) {
+    group = EXAMPLES_GROUP
+    description = "Runs extended version of cachedTests.ColorApp example"
+    classpath = sourceSets.main.runtimeClasspath
+    args = ["examples.cachedTests.ColorApp"] // working
+    main = extendedmainClassName
+}
+
+task runExtendedCachedCom(type: JavaExec) {
+    group = EXAMPLES_GROUP
+    description = "Runs extended version of cachedTests.ComApp example"
+    classpath = sourceSets.main.runtimeClasspath
+    args = ["examples.cachedTests.ComApp"] // working
+    main = extendedmainClassName
+}
+
+task generateClasses {
+    dependsOn 'compileJava'
+    [
+//        "pa.tests.TestA",
+//        "pa.tests.TestB",
+//        "pa.tests.TestC",
+//        "pa.tests.TestD",
+//        "pa.tests.TestE",
+//        "pa.tests.TestF",
+//        "pa.tests.TestG",
+//        "pa.tests.TestH",
+        "pa.tests.TestI",
+//        "pa.tests.TestJ",
+//        "pa.tests.TestK",
+//        "pa.tests.TestL",
+//        "pa.tests.TestM",
+//        "pa.tests.TestN",
+//        "pa.tests.TestO",
+        "pa.tests.TestP",
+    ].each { file ->
+        doLast {
+            println ""
+            println file
+            javaexec {
+                classpath = sourceSets.main.runtimeClasspath
+                main = mainClassName
+                args = [file]
+            }
+            println ""
+        }
+    }
+}
+
+test {
+    forkEvery = 1
 }

@@ -1,8 +1,8 @@
-package examples.enunciado;
+package examples.cachedTests;
 
-import ist.meic.pa.GenericFunctions.GenericFunction;
-import ist.meic.pa.GenericFunctions.BeforeMethod;
 import ist.meic.pa.GenericFunctions.AfterMethod;
+import ist.meic.pa.GenericFunctions.BeforeMethod;
+import ist.meic.pa.GenericFunctions.GenericFunction;
 
 @GenericFunction
 interface Explain {

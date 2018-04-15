@@ -1,4 +1,4 @@
-import meic.ist.pa.GenericFunctions.WithGenericFunction;
+import ist.meic.pa.GenericFunctions.WithGenericFunction;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;

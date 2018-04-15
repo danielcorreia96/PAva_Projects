@@ -1,4 +1,4 @@
-package examples.enunciado;
+package examples.cachedTests;
 
 import ist.meic.pa.GenericFunctions.GenericFunction;
 

@@ -1,6 +1,6 @@
 package examples.oldTests;
 
-import meic.ist.pa.GenericFunctions.GenericFunction;
+import ist.meic.pa.GenericFunctions.GenericFunction;
 
 import java.util.Arrays;
 
