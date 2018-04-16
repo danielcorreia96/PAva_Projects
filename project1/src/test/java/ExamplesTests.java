@@ -77,8 +77,4 @@ public class ExamplesTests {
         assertEquals("Wrong output",expected, outContent.toString());
     }
 
-//    @Test public void testOldSimpleAddApp() throws Throwable {
-//        WithGenericFunction.main(new String[]{"examples.oldTests.SimpleAddApp"});
-//        assert true;
-//    }
 }

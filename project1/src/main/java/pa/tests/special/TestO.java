@@ -1,4 +1,4 @@
-package pa.tests;
+package pa.tests.special;
 
 import pa.tests.domain.*;
 

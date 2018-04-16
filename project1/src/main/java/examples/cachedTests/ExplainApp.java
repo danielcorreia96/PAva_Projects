@@ -36,5 +36,12 @@ public class ExplainApp {
         for (Object o : objs) {
             Explain.it(o);
         }
+
+        System.out.println("\nNext method calls should be from cached effective methods\n");
+        Object[] objs2 = new Object[] { "Cenas", 5, 3.2 };
+        for (Object o : objs2) {
+            Explain.it(o);
+        }
+
     }
 }

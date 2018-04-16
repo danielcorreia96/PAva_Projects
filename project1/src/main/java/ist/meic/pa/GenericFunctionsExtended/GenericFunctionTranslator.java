@@ -156,46 +156,28 @@ public class GenericFunctionTranslator implements Translator{
                 , ctClass);
         ctClass.addMethod(getClassNames);
 
-        // newMethod = getCachedMethod
-        CtMethod getCacheMethod = CtNewMethod.make(
-                "public static Object getCachedMethod(Class clazz, String name, java.util.Hashtable paramsMap, Object[] params){ " +
+        // newMethod = getMethodBySuperclasses
+        CtMethod getSuperMethod = CtNewMethod.make(
+                "public static java.util.Hashtable getMethodBySuperclasses(Class clazz, String name, java.util.Hashtable paramsMap, Object[] params){ " +
                         "java.util.List param_classnames = getClassNames(params);" +
 
                         "for (int i = 0; i < param_classnames.size(); i++){" +
                         "   String joined = String.join(\"#\", (java.util.List)param_classnames.get(i));" +
                         "   if (paramsMap.containsKey(joined)){" +
                         "       java.util.Hashtable methodcache = (java.util.Hashtable) paramsMap.get(joined);" +
-                        "       java.util.Hashtable cached = (java.util.Hashtable) methodcache.get(\"cached\");" +
-
-                        "       java.util.Iterator iterator = cached.entrySet().iterator();" +
-                        "       while (iterator.hasNext()) {" +
-                        "           java.util.Map.Entry entry = (java.util.Map.Entry) iterator.next();" +
-                        "           Object[] key = (Object[]) entry.getKey();" +
-                        "           Object cachedvalue = entry.getValue();" +
-                        "           if (java.util.Arrays.deepEquals(key,params)){" +
-//                        "               System.out.println(\"from cache --> \" + cachedvalue);" +
-                        "               return cachedvalue;" +
-                        "           }" +
-                        "       }" +
-
-                        "       Method method = (Method) methodcache.get(\"method\");" +
-                        "       Object invocation_result = method.invoke(null, params);" +
-//                        "       System.out.println(\"invoked a method\");" +
-                        "       if (invocation_result != null){ " +
-                        "           ((java.util.Hashtable) methodcache.get(\"cached\")).put(params, invocation_result);" +
-                        "       }" +
-                        "       return invocation_result;" +
+                        "       return methodcache;" +
                         "   }" +
                         "}" +
 
                         "return null;" +
                         "}", ctClass);
-        ctClass.addMethod(getCacheMethod);
+        ctClass.addMethod(getSuperMethod);
 
         // newMethod = invokeMethodsFromMap
         CtMethod invokeAllValidMethodsFromMap = CtNewMethod.make(
-                "public static void invokeAllValidMethodsFromMap(java.util.Hashtable genericFunctionMap, boolean leastToMostSpecific, Class clazz, String name, Object[] args){" +
+                "public static java.util.List invokeAllValidMethodsFromMap(java.util.Hashtable genericFunctionMap, boolean leastToMostSpecific, Class clazz, String name, Object[] args){" +
                         "java.util.Hashtable methodsMap = ((java.util.Hashtable)genericFunctionMap.get(clazz));" +
+                        "java.util.List invokedMethods = new java.util.ArrayList();" +
                         "if (methodsMap != null && !methodsMap.isEmpty()) {" +
                         "   java.util.List param_classnames = getClassNames(args);" +
                         "   if (leastToMostSpecific) { java.util.Collections.reverse(param_classnames); }" +
@@ -206,13 +188,24 @@ public class GenericFunctionTranslator implements Translator{
                         "           java.util.Hashtable methodcache = (java.util.Hashtable) paramsMap.get(joined);" +
                         "           Method method =  (Method) methodcache.get(\"method\");" +
                         "           method.invoke(null, args);" +
+                        "           invokedMethods.add(method);" +
                         "       }" +
                         "   }" +
                         "}" +
+                        "return invokedMethods;" +
                     "}",
                 ctClass);
 
         ctClass.addMethod(invokeAllValidMethodsFromMap);
+
+        // newMethod = hasCachedMethod
+        CtMethod hasCachedMethod = CtNewMethod.make(
+                "public static boolean hasCachedMethod(java.util.Hashtable cacheMethodMap){" +
+                        "return false;" +
+                        "}",
+                ctClass);
+
+        ctClass.addMethod(hasCachedMethod);
 
         // newMethod = invokeSpecifc
         CtMethod newMethod = CtNewMethod.make(
@@ -222,17 +215,41 @@ public class GenericFunctionTranslator implements Translator{
                         "   gFunBeforeMap.put(clazz, getInitTableForAnnotation(clazz, ist.meic.pa.GenericFunctions.BeforeMethod.class));" +
                         "   gFunAfterMap.put(clazz, getInitTableForAnnotation(clazz, ist.meic.pa.GenericFunctions.AfterMethod.class));" +
                         "}" +
-
-                        "invokeAllValidMethodsFromMap(gFunBeforeMap, false, clazz, name, args);" +
-
                         "java.util.Hashtable methodsMap = ((java.util.Hashtable)gFunBaseMap.get(clazz));" +
                         "java.util.Hashtable paramsMap = ((java.util.Hashtable)methodsMap.get(name));" +
-                        "Object invocation_result;" +
-                        "invocation_result = getCachedMethod(clazz, name, paramsMap, args);" +
+                        "java.util.Hashtable superMethodMap = getMethodBySuperclasses(clazz, name, paramsMap, args);" +
+                        "java.util.Hashtable cachedMethodMap = (java.util.Hashtable) superMethodMap.get(\"cached\");" +
 
+                        "if (cachedMethodMap.isEmpty()) {" +
+//                        "   System.err.println(\"going the long way...\");" +
+                        "   java.util.List beforeMethods = invokeAllValidMethodsFromMap(gFunBeforeMap, false, clazz, name, args);" +
 
-                        "invokeAllValidMethodsFromMap(gFunAfterMap, true, clazz, name, args);" +
-                        "return invocation_result;" +
+                        "   Method superMethod = (Method) superMethodMap.get(\"method\");" +
+                        "   Object invocation_result = superMethod.invoke(null, args);" +
+
+                        "   java.util.List afterMethods = invokeAllValidMethodsFromMap(gFunAfterMap, true, clazz, name, args);" +
+
+                        "   cachedMethodMap.put(\"before\", beforeMethods);" +
+                        "   cachedMethodMap.put(\"base\", superMethod);" +
+                        "   cachedMethodMap.put(\"after\", afterMethods);" +
+                        "   return invocation_result;" +
+                        "}" +
+                        "else {" +
+//                        "   System.out.println(\"using cached effective method\");" +
+                        "   java.util.List beforeMethods = (java.util.List) cachedMethodMap.get(\"before\");" +
+                        "   for (int i = 0; i < beforeMethods.size(); i++) {" +
+                        "       Method beforeMethod = (Method) beforeMethods.get(i);" +
+                        "       beforeMethod.invoke(null, args);" +
+                        "   }" +
+                        "   Method baseMethod = (Method) cachedMethodMap.get(\"base\");" +
+                        "   Object base_result = baseMethod.invoke(null, args);" +
+                        "   java.util.List afterMethods = (java.util.List) cachedMethodMap.get(\"after\");" +
+                        "   for (int i = 0; i < afterMethods.size(); i++) {" +
+                        "       Method afterMethod = (Method) afterMethods.get(i);" +
+                        "       afterMethod.invoke(null, args);" +
+                        "   }" +
+                        "   return base_result;" +
+                        "}" +
                     "}", ctClass);
         ctClass.addMethod(newMethod);
 

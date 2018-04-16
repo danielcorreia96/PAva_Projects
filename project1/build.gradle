@@ -145,6 +145,22 @@ task runExtendedCachedCom(type: JavaExec) {
     main = extendedmainClassName
 }
 
+task runExtendedCachedDevice(type: JavaExec) {
+    group = EXAMPLES_GROUP
+    description = "Runs extended version of cachedTests.DeviceApp example"
+    classpath = sourceSets.main.runtimeClasspath
+    args = ["examples.cachedTests.DeviceApp"] // working
+    main = extendedmainClassName
+}
+
+task runExtendedCachedExplain(type: JavaExec) {
+    group = EXAMPLES_GROUP
+    description = "Runs extended version of cachedTests.ExplainApp example"
+    classpath = sourceSets.main.runtimeClasspath
+    args = ["examples.cachedTests.ExplainApp"] // working
+    main = extendedmainClassName
+}
+
 task generateClasses {
     dependsOn 'compileJava'
     [
@@ -169,6 +185,28 @@ task generateClasses {
             println ""
             println file
             javaexec {
+                classpath = sourceSets.main.runtimeClasspath
+                main = mainClassName
+                args = [file]
+            }
+            println ""
+        }
+    }
+}
+
+task specialTestCases {
+    dependsOn 'compileJava'
+    [
+        "pa.tests.special.TestE",
+        "pa.tests.special.TestF",
+        "pa.tests.special.TestJ",
+        "pa.tests.special.TestO",
+    ].each { file ->
+        doLast {
+            println ""
+            println file
+            javaexec {
+                ignoreExitValue true
                 classpath = sourceSets.main.runtimeClasspath
                 main = mainClassName
                 args = [file]

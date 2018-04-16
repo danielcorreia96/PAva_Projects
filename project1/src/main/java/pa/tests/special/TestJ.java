@@ -1,4 +1,4 @@
-package pa.tests;
+package pa.tests.special;
 
 import pa.tests.domain.Blue;
 import pa.tests.domain.Color;
@@ -9,5 +9,4 @@ public class TestJ {
         Color blue = new Blue();
         What.is(blue);
     }
-
 }

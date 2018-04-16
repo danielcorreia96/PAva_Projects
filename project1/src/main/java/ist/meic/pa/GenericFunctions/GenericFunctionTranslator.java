@@ -17,20 +17,15 @@ public class GenericFunctionTranslator implements Translator{
     @Override
     public void onLoad(ClassPool pool, String classname) throws NotFoundException, CannotCompileException {
         CtClass ctClass = pool.get(classname);
-        try {
-            if (ctClass.getAnnotation(GenericFunction.class) != null) {
-                doThings(ctClass);
-            }
-            else if (Arrays.stream(ctClass.getMethods()).map(CtMethod::getName).anyMatch(name -> name.equals("main"))) {
-                doMainClassThings(ctClass);
-            }
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-            throw new RuntimeException(e);
+        if (ctClass.hasAnnotation(GenericFunction.class)) {
+            doThings(ctClass);
+        }
+        else if (Arrays.stream(ctClass.getMethods()).map(CtMethod::getName).anyMatch(name -> name.equals("main"))) {
+            doMainClassThings(ctClass);
         }
     }
 
-    private void doMainClassThings(CtClass ctClass) throws CannotCompileException {
+    private void doMainClassThings(CtClass ctClass) throws CannotCompileException, NotFoundException {
         // newField - gFunBaseMap
         ctClass.addField(CtField.make("static java.util.Hashtable gFunBaseMap = new java.util.Hashtable();", ctClass));
 
@@ -48,7 +43,7 @@ public class GenericFunctionTranslator implements Translator{
                         "for (int i = 0; i < methods.length; i++){" +
                         "    if (annotationClass == null && methods[i].getAnnotations().length != 0) { continue; }" +
                         "    if (annotationClass == null || methods[i].isAnnotationPresent(annotationClass)){" +
-                        "    System.err.println(methods[i]);" +
+                        "       methods[i].setAccessible(true);" +
                         "       java.util.Hashtable params_method;" +
                         "       String methodname = methods[i].getName();" +
                         "       Class[] params_types = methods[i].getParameterTypes();" +
@@ -194,14 +189,15 @@ public class GenericFunctionTranslator implements Translator{
                         "   gFunBeforeMap.put(clazz, getInitTableForAnnotation(clazz, ist.meic.pa.GenericFunctions.BeforeMethod.class));" +
                         "   gFunAfterMap.put(clazz, getInitTableForAnnotation(clazz, ist.meic.pa.GenericFunctions.AfterMethod.class));" +
                         "}" +
-                        "invokeAllValidMethodsFromMap(gFunBeforeMap, false, clazz, name, args);" +
-
                         "java.util.Hashtable methodsMap = ((java.util.Hashtable)gFunBaseMap.get(clazz));" +
                         "java.util.Hashtable paramsMap = ((java.util.Hashtable)methodsMap.get(name));" +
-                        "Object invocation_result;" +
                         "Method superMethod = getMethodBySuperclasses(clazz, name, paramsMap, args);" +
-                        "invocation_result = superMethod.invoke(null, args);" +
+                        "if (superMethod == null) { " +
+                        "   throw new NoSuchMethodException(\"Unable to find a primary method during multiple dispatch\");" +
+                        "}" +
 
+                        "invokeAllValidMethodsFromMap(gFunBeforeMap, false, clazz, name, args);" +
+                        "Object invocation_result = superMethod.invoke(null, args);" +
                         "invokeAllValidMethodsFromMap(gFunAfterMap, true, clazz, name, args);" +
                         "return invocation_result;" +
                     "}", ctClass);
@@ -217,10 +213,17 @@ public class GenericFunctionTranslator implements Translator{
                             } catch (NotFoundException e) { e.printStackTrace(); }
                         }
                     });
+//            if (ctMethod.getName().equals("main")){
+//                CtClass etype = ClassPool.getDefault().get("java.lang.NoSuchMethodException");
+//                ctMethod.addCatch("{ System.err.println($e.getMessage()); throw $e; }", etype);
+//            }
         }
+
         mainClass = ctClass.getName();
         ctClass.debugWriteFile();
     }
+
+
 
     void doThings(CtClass ctClass) throws CannotCompileException {
         // replace recursive method calls inside a GenericFunction annotated element
@@ -228,8 +231,9 @@ public class GenericFunctionTranslator implements Translator{
             ctMethod.instrument(new ExprEditor() {
                         public void edit(MethodCall m) throws CannotCompileException {
                             try {
-                                if (m.getMethod().getDeclaringClass().hasAnnotation(GenericFunction.class))
+                                if (m.getMethod().getDeclaringClass().hasAnnotation(GenericFunction.class)){
                                     m.replace("{ $_ = ($r) " + mainClass + ".invokeSpecific($class, \"" + m.getMethodName() + "\", ($args)); }");
+                                }
                             } catch (NotFoundException e) { e.printStackTrace(); }
                         }
                     });
