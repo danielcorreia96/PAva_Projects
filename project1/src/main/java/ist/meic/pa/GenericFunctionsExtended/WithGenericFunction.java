@@ -21,4 +21,9 @@ public class WithGenericFunction {
             classLoader.run(args[0], restArgs);
         }
     }
+
+    public static void callNextMethod(Object... args){
+        // Do nothing. This method is used as a marker in @AroundMethods to replace
+        // with a javassist method that handles call-next-method functionality
+    }
 }

@@ -32,6 +32,10 @@ public class GenericFunctionTranslator implements Translator{
     }
 
     private void doMainClassThings(CtClass ctClass) throws CannotCompileException {
+//        System.err.println("doing main class things ---> " + ctClass.getName());
+
+        mainClass = ctClass.getName();
+
         // newField - gFunBaseMap
         ctClass.addField(CtField.make("static java.util.Hashtable gFunBaseMap = new java.util.Hashtable();", ctClass));
 
@@ -40,6 +44,12 @@ public class GenericFunctionTranslator implements Translator{
 
         // newField - gFunAfterMap
         ctClass.addField(CtField.make("static java.util.Hashtable gFunAfterMap = new java.util.Hashtable();", ctClass));
+
+        // newField - gFunAroundMap
+        ctClass.addField(CtField.make("static java.util.Hashtable gFunAroundMap = new java.util.Hashtable();", ctClass));
+
+        // newField - usedAroundMethods
+        ctClass.addField(CtField.make("static java.util.List usedAroundMethods = new java.util.ArrayList();", ctClass));
 
         // newMethod = getInitTableForAnnotation
         CtMethod getInitTableForAnnotation = CtNewMethod.make(
@@ -160,7 +170,6 @@ public class GenericFunctionTranslator implements Translator{
         CtMethod getSuperMethod = CtNewMethod.make(
                 "public static java.util.Hashtable getMethodBySuperclasses(Class clazz, String name, java.util.Hashtable paramsMap, Object[] params){ " +
                         "java.util.List param_classnames = getClassNames(params);" +
-
                         "for (int i = 0; i < param_classnames.size(); i++){" +
                         "   String joined = String.join(\"#\", (java.util.List)param_classnames.get(i));" +
                         "   if (paramsMap.containsKey(joined)){" +
@@ -198,14 +207,69 @@ public class GenericFunctionTranslator implements Translator{
 
         ctClass.addMethod(invokeAllValidMethodsFromMap);
 
-        // newMethod = hasCachedMethod
-        CtMethod hasCachedMethod = CtNewMethod.make(
-                "public static boolean hasCachedMethod(java.util.Hashtable cacheMethodMap){" +
-                        "return false;" +
-                        "}",
-                ctClass);
 
-        ctClass.addMethod(hasCachedMethod);
+
+        // newMethod = invokeApplicableMethods
+        CtMethod invokeApplicableMethods = CtNewMethod.make(
+                "public static Object invokeApplicableMethods(Class clazz, String name, Object[] args){" +
+                        "java.util.Hashtable methodsMap = ((java.util.Hashtable)gFunBaseMap.get(clazz));" +
+                        "java.util.Hashtable paramsMap = ((java.util.Hashtable)methodsMap.get(name));" +
+                        "java.util.Hashtable superMethodMap = getMethodBySuperclasses(clazz, name, paramsMap, args);" +
+                        "java.util.Hashtable cachedMethodMap = (java.util.Hashtable) superMethodMap.get(\"cached\");" +
+
+                        "if (cachedMethodMap.isEmpty()) {" +
+//                        "   System.err.println(\"going the long way...\");" +
+                        "   java.util.List beforeMethods = invokeAllValidMethodsFromMap(gFunBeforeMap, false, clazz, name, args);" +
+
+                        "   Method superMethod = (Method) superMethodMap.get(\"method\");" +
+                        "   Object invocation_result = superMethod.invoke(null, args);" +
+
+                        "   java.util.List afterMethods = invokeAllValidMethodsFromMap(gFunAfterMap, true, clazz, name, args);" +
+
+                        "   cachedMethodMap.put(\"before\", beforeMethods);" +
+                        "   cachedMethodMap.put(\"base\", superMethod);" +
+                        "   cachedMethodMap.put(\"after\", afterMethods);" +
+                        "   return invocation_result;" +
+                        "}" +
+
+                        "else {" +
+//                        "   System.out.println(\"using cached effective method\");" +
+                        "   java.util.List beforeMethods = (java.util.List) cachedMethodMap.get(\"before\");" +
+                        "   for (int i = 0; i < beforeMethods.size(); i++) {" +
+                        "       Method beforeMethod = (Method) beforeMethods.get(i);" +
+                        "       beforeMethod.invoke(null, args);" +
+                        "   }" +
+                        "   Method baseMethod = (Method) cachedMethodMap.get(\"base\");" +
+                        "   Object base_result = baseMethod.invoke(null, args);" +
+                        "   java.util.List afterMethods = (java.util.List) cachedMethodMap.get(\"after\");" +
+                        "   for (int i = 0; i < afterMethods.size(); i++) {" +
+                        "       Method afterMethod = (Method) afterMethods.get(i);" +
+                        "       afterMethod.invoke(null, args);" +
+                        "   }" +
+                        "   return base_result;" +
+                        "}" +
+                    "}",
+                ctClass);
+        ctClass.addMethod(invokeApplicableMethods);
+
+        // newMethod = getAroundMethodBySuperclasses
+        CtMethod getAroundMethodBySuperclasses = CtNewMethod.make(
+                "public static java.util.Hashtable getAroundMethodBySuperclasses(Class clazz, String name, java.util.Hashtable paramsMap, Object[] params){ " +
+                        "java.util.List param_classnames = getClassNames(params);" +
+                        "for (int i = 0; i < param_classnames.size(); i++){" +
+                        "   String joined = String.join(\"#\", (java.util.List)param_classnames.get(i));" +
+                        "   if (paramsMap.containsKey(joined) && !usedAroundMethods.contains(joined)){" +
+                        "       java.util.Hashtable methodcache = (java.util.Hashtable) paramsMap.get(joined);" +
+                        "       usedAroundMethods.add(joined);" +
+                        "       return methodcache;" +
+                        "   }" +
+                        "}" +
+
+                        "return null;" +
+                        "}", ctClass);
+        ctClass.addMethod(getAroundMethodBySuperclasses);
+
+
 
         // newMethod = invokeSpecifc
         CtMethod newMethod = CtNewMethod.make(
@@ -214,11 +278,24 @@ public class GenericFunctionTranslator implements Translator{
                         "   gFunBaseMap.put(clazz, getInitTableForAnnotation(clazz, null)); " +
                         "   gFunBeforeMap.put(clazz, getInitTableForAnnotation(clazz, ist.meic.pa.GenericFunctions.BeforeMethod.class));" +
                         "   gFunAfterMap.put(clazz, getInitTableForAnnotation(clazz, ist.meic.pa.GenericFunctions.AfterMethod.class));" +
+                        "   gFunAroundMap.put(clazz, getInitTableForAnnotation(clazz, ist.meic.pa.GenericFunctionsExtended.AroundMethod.class));" +
+//                        "   System.out.println(gFunAroundMap);" +
                         "}" +
                         "java.util.Hashtable methodsMap = ((java.util.Hashtable)gFunBaseMap.get(clazz));" +
                         "java.util.Hashtable paramsMap = ((java.util.Hashtable)methodsMap.get(name));" +
                         "java.util.Hashtable superMethodMap = getMethodBySuperclasses(clazz, name, paramsMap, args);" +
                         "java.util.Hashtable cachedMethodMap = (java.util.Hashtable) superMethodMap.get(\"cached\");" +
+
+                        "java.util.Hashtable aroundMethodsMap = ((java.util.Hashtable)gFunAroundMap.get(clazz));" +
+                        "java.util.Hashtable aroundParamsMap = ((java.util.Hashtable)aroundMethodsMap.get(name));" +
+                        "java.util.Hashtable aroundMethodMap = getAroundMethodBySuperclasses(clazz, name, aroundParamsMap, args);" +
+                        "if (aroundMethodMap != null && aroundMethodMap.get(\"method\") != null){" +
+//                        "   System.out.println(\"doing around method if\");" +
+                        "   Method aroundMethod = (Method) aroundMethodMap.get(\"method\");" +
+                        "   Object invocation_result = aroundMethod.invoke(null, args);" +
+//                        "   System.out.println(\"finished around if\");" +
+                        "   return invocation_result;" +
+                        "}" +
 
                         "if (cachedMethodMap.isEmpty()) {" +
 //                        "   System.err.println(\"going the long way...\");" +
@@ -253,6 +330,25 @@ public class GenericFunctionTranslator implements Translator{
                     "}", ctClass);
         ctClass.addMethod(newMethod);
 
+        // newMethod = callNextMethod
+        CtMethod callNextMethod = CtNewMethod.make(
+                "public static Object callNextMethod(Class clazz, String name, Object[] args){" +
+                        "Object[] actual_args = (Object[])args[0];" +
+                        "java.util.Hashtable aroundMethodsMap = ((java.util.Hashtable)gFunAroundMap.get(clazz));" +
+                        "java.util.Hashtable aroundParamsMap = ((java.util.Hashtable)aroundMethodsMap.get(name));" +
+                        "java.util.Hashtable aroundMethodMap = getAroundMethodBySuperclasses(clazz, name, aroundParamsMap, args);" +
+                        "if (aroundMethodMap != null && !aroundMethodMap.isEmpty()){" +
+                        "    usedAroundMethods.remove(usedAroundMethods.size()-1);" +
+                        "    return invokeSpecific(clazz, name, actual_args);" +
+                        "}" +
+                        "else {" +
+                        "   return invokeApplicableMethods(clazz, name, actual_args);" +
+                        "}" +
+                        "}",
+                ctClass);
+
+        ctClass.addMethod(callNextMethod);
+
         // replace methods calls declared by some GenericFunction annotated element
         for (CtMethod ctMethod : ctClass.getMethods()) {
             ctMethod.instrument(new ExprEditor() {
@@ -264,7 +360,7 @@ public class GenericFunctionTranslator implements Translator{
                         }
                     });
         }
-        mainClass = ctClass.getName();
+
         ctClass.debugWriteFile();
     }
 
@@ -274,8 +370,12 @@ public class GenericFunctionTranslator implements Translator{
             ctMethod.instrument(new ExprEditor() {
                         public void edit(MethodCall m) throws CannotCompileException {
                             try {
-                                if (m.getMethod().getDeclaringClass().hasAnnotation(GenericFunction.class))
+                                if (ctMethod.hasAnnotation(AroundMethod.class) && m.getMethodName().equals("callNextMethod")){
+                                    m.replace("{ $_ = ($r) " + mainClass + ".callNextMethod(" + ctClass.getName() + ".class, \"" + ctMethod.getName() + "\", ($args)); }");
+                                }
+                                else if (m.getMethod().getDeclaringClass().hasAnnotation(GenericFunction.class)) {
                                     m.replace("{ $_ = ($r) " + mainClass + ".invokeSpecific($class, \"" + m.getMethodName() + "\", ($args)); }");
+                                }
                             } catch (NotFoundException e) { e.printStackTrace(); }
                         }
                     });

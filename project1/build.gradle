@@ -161,6 +161,15 @@ task runExtendedCachedExplain(type: JavaExec) {
     main = extendedmainClassName
 }
 
+
+task runExtendedAroundMethodColor(type: JavaExec) {
+    group = EXAMPLES_GROUP
+    description = "Runs extended version of aroundTests.ColorApp example"
+    classpath = sourceSets.main.runtimeClasspath
+    args = ["examples.aroundTests.ColorApp"] // working
+    main = extendedmainClassName
+}
+
 task generateClasses {
     dependsOn 'compileJava'
     [
