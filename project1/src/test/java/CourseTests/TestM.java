@@ -2,7 +2,7 @@ package CourseTests;
 
 import ist.meic.pa.GenericFunctions.WithGenericFunction;
 import org.junit.Test;
-
+import BaseTest.BaseTest;
 import static org.junit.Assert.assertEquals;
 
 public class TestM extends BaseTest {

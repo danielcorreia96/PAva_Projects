@@ -1,7 +1,5 @@
 package examples.aroundTests;
 
-import ist.meic.pa.GenericFunctions.AfterMethod;
-import ist.meic.pa.GenericFunctions.BeforeMethod;
 import ist.meic.pa.GenericFunctions.GenericFunction;
 import ist.meic.pa.GenericFunctionsExtended.AroundMethod;
 import ist.meic.pa.GenericFunctionsExtended.WithGenericFunction;
@@ -44,7 +42,7 @@ public class ColorApp {
         Color.doThings(c);
 
         System.out.println();
-        
+
         Color.doThings(c);
     }
 }

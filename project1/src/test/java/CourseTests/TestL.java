@@ -1,10 +1,9 @@
 package CourseTests;
 
+import BaseTest.BaseTest;
 import ist.meic.pa.GenericFunctions.WithGenericFunction;
 import org.junit.Assert;
 import org.junit.Test;
-
-import static org.junit.Assert.assertEquals;
 
 public class TestL extends BaseTest {
 

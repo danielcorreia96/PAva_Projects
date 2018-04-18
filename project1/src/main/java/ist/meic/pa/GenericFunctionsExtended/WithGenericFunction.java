@@ -12,7 +12,7 @@ public class WithGenericFunction {
         else {
             Translator translator = new GenericFunctionTranslator();
             ClassPool pool = ClassPool.getDefault();
-            pool.importPackage("java.lang.reflect");
+            pool.importPackage("ist.meic.pa.GenericFunctionsExtended");
             Loader classLoader = new Loader();
             classLoader.addTranslator(pool, translator);
 

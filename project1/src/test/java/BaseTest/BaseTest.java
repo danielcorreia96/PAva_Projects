@@ -1,4 +1,4 @@
-package CourseTests;
+package BaseTest;
 
 import org.junit.After;
 import org.junit.Before;

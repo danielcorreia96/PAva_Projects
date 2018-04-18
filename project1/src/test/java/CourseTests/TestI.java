@@ -3,7 +3,7 @@ package CourseTests;
 import ist.meic.pa.GenericFunctions.WithGenericFunction;
 import org.junit.Assert;
 import org.junit.Test;
-
+import BaseTest.BaseTest;
 public class TestI extends BaseTest {
 
 
