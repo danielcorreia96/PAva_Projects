@@ -1,0 +1,77 @@
+Course Tests Coverage
+
+Test A
+- No Before/After methods
+- No array arguments
+- No recursion within GF class (Color)
+- Test for a single argument
+
+Test B
+- No Before/After methods
+- No array arguments
+- No recursion within GF class (Com)
+- Test for a single argument
+
+Test C
+- No Before/After methods
+- Uses array arguments
+- Recursion within GF class (Color)
+- Test for a single array argument
+
+Test D
+- No Before/After methods
+- Uses array arguments
+- Recursion within GF class (Com)
+- Tests for a single array argument of type Object[] containing an Integer[]
+
+Test G
+- No Before/After methods
+- Uses array arguments
+- Recursion within GF class (ArrayCom)
+- Tests for a two arguments (Integer or Object[])
+
+Test H
+- Uses 1 Before and 1 After methods
+- No array arguments
+- No Recursion within GF class (Explain)
+- Test for a single argument
+
+Test I
+- Uses 2 Before and  3 After methods
+- No array arguments
+- No Recursion within GF class (What)
+- Test for a single argument
+
+Test K
+- No Before/After methods
+- Uses List and ArrayList arguments
+- Recursion within GF class (ArrayCom)
+- Tests for two Lists or two ArrayLists as arguments
+
+Test L
+- No Before/After methods
+- No array arguments
+- Recursion within GF class (Com)
+- Tests for two arguments
+
+Test M 
+- No Before/After methods
+- No array arguments
+- Recursion within GF class (Color)
+- Tests for two arguments
+
+Test N
+- No Before/After methods
+- No array arguments
+- No Recursion within GF class (Color)
+- Tests for three arguments
+
+
+Test P
+- Uses 2 Before and 2 After methods
+- No array arguments
+- No Recursion within GF class (Explain)
+- Test for a two arguments
+- Goal: checks if before/after methods have applicable list have correct order
+    BeforeMethod: most specific -> least specific
+    AfterMethod: least specific -> most specific

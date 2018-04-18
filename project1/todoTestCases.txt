@@ -1,0 +1,38 @@
+Casos de Teste
+
+Type A - no Before/After methods, no recursion
+1. Single argument
+2. Two arguments
+3. Three arguments
+    a) Void return Type - done
+    b) String return Type - done
+    c) Integer return Type - done
+    d) Object return Type - done
+    e) Object[] return Type
+    f) List return Type
+    g) ArrayList return Type
+
+
+Type B - has before/after methods, no recursion
+1. 1 Before method - done
+2. 2 After method - done
+3. 1 BM + 1 AM - done
+4. 2 BM + 2 AM - done
+5. Same method Before+After - done
+
+
+Type C - has recursion, may have before/after
+1. recursion within GF class/interface - done
+infinite loop? -> 2. before method causes recursion to a primary method
+infinite loop? -> 3. after method causes recursion to a primary method
+4. A GF class calls another non-related GF class method - have test, didn't run it
+5. A non-GF (not main app) class calls a GF class method - have test, didn't run it
+6. A non-GF subclass calls method of GF superclass - have test, didn't run it
+7. A non-GF superclass calls method of GF subclass - have test, didn't run it
+8. A GF subclass calls method of GF superclass - have test, didn't run it
+9. A GF superclass calls method of GF subclass - have test, didn't run it
+
+Type D - misc
+1. Main app uses multiple GF classes - C8 does this
+2. Before and After method applicable list order - done
+3. No primary method available - done
