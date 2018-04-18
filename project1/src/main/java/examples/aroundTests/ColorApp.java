@@ -22,9 +22,11 @@ interface Color {
         System.out.println("Foo");
     }
 
-    @BeforeMethod
-    @AfterMethod
+    
+    @AroundMethod
     public static void doThings(Bar c){
+        System.out.println("Bar");
+        WithGenericFunction.callNextMethod(c);
         System.out.println("Bar");
     }
 
@@ -39,6 +41,10 @@ interface Color {
 public class ColorApp {
     public static void main(String... args){
         Object c = new C1();
+        Color.doThings(c);
+
+        System.out.println();
+        
         Color.doThings(c);
     }
 }

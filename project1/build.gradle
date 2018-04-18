@@ -35,7 +35,9 @@ repositories {
     jcenter()
 }
 
+
 jar {
+    archiveName 'genericFunctions.jar'
     manifest {
         attributes 'Main-Class': mainClassName
     }

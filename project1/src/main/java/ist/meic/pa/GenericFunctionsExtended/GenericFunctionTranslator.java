@@ -339,10 +339,14 @@ public class GenericFunctionTranslator implements Translator{
                         "java.util.Hashtable aroundMethodMap = getAroundMethodBySuperclasses(clazz, name, aroundParamsMap, args);" +
                         "if (aroundMethodMap != null && !aroundMethodMap.isEmpty()){" +
                         "    usedAroundMethods.remove(usedAroundMethods.size()-1);" +
-                        "    return invokeSpecific(clazz, name, actual_args);" +
+                        "    Object result = invokeSpecific(clazz, name, actual_args);" +
+                        "    usedAroundMethods.remove(usedAroundMethods.size()-1);" +
+                        "    return result;" +
                         "}" +
                         "else {" +
-                        "   return invokeApplicableMethods(clazz, name, actual_args);" +
+                        "   Object result = invokeApplicableMethods(clazz, name, actual_args);" +
+                        "   usedAroundMethods.remove(usedAroundMethods.size()-1);" +
+                        "   return result;" +
                         "}" +
                         "}",
                 ctClass);
