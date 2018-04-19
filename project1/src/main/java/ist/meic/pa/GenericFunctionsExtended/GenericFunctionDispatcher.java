@@ -2,6 +2,7 @@ package ist.meic.pa.GenericFunctionsExtended;
 
 import ist.meic.pa.GenericFunctions.AfterMethod;
 import ist.meic.pa.GenericFunctions.BeforeMethod;
+import ist.meic.pa.GenericFunctions.CombinationsHelper;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
@@ -54,56 +55,10 @@ public final class GenericFunctionDispatcher {
         }
         return clazz_methods;
     }
-    
-    private static List<List<Class>> getNextCombinations(List<List<Class>> current_combs, List<Class> tmp) {
-        List<List<Class>> next_combs = new ArrayList<>();
-        for (List<Class> current_comb : current_combs) {
-            for (Class aClass : tmp) {
-                List<Class> comb = new ArrayList<>(current_comb);
-                comb.add(aClass);
-                next_combs.add(comb);
-            }
-        }
-        return next_combs;
-    }
 
-    private static List<List<Class>> getSuperCombinations(Object[] params) {
-        List<Class> param_classes = Arrays.stream(params).map(Object::getClass).collect(Collectors.toList());
-
-        List<List<Class>> params_all_supers = new ArrayList<>();
-        for (Class param_class : param_classes) {
-            List<Class> class_tree = new ArrayList<>();
-            class_tree.add(param_class);
-            class_tree.addAll(Arrays.asList(param_class.getInterfaces()));
-
-            while (!param_class.equals(Object.class)) {
-                param_class = param_class.getSuperclass();
-                class_tree.add(param_class);
-                class_tree.addAll(Arrays.asList(param_class.getInterfaces()));
-            }
-            params_all_supers.add(class_tree);
-        }
-
-        List<List<Class>> combinations = new ArrayList<>();
-        for (List<Class> params_all_super : params_all_supers) {
-            if (combinations.isEmpty()) {
-                combinations = params_all_super.stream().map(aClass -> new ArrayList<>(Collections.singleton(aClass))).collect(Collectors.toList());
-            }
-            else {
-                combinations = getNextCombinations(combinations, params_all_super);
-            }
-        }
-        return combinations;
-    }
-
-    private static List<List<String>> getParamsClassNames(Object[] params){
-        return getSuperCombinations(params).stream()
-                .map(combination -> combination.stream().map(Class::getName).collect(Collectors.toList()))
-                .collect(Collectors.toList());
-    }
 
     private static HashMap getMethodBySuperclasses(HashMap<String, HashMap> paramsMap, Object[] params) throws NoSuchMethodException {
-        List<List<String>> paramsClassNames = getParamsClassNames(params);
+        List<List<String>> paramsClassNames = CombinationsHelper.getParamsClassNames(params);
         return paramsMap.get(paramsClassNames.stream()
                 .map(strings -> String.join("#", strings)).filter(paramsMap::containsKey).findFirst()
                 .orElseThrow(() -> new NoSuchMethodException("Unable to find a primary method during multiple dispatch")));
@@ -115,7 +70,7 @@ public final class GenericFunctionDispatcher {
             return invokedMethods;
         }
 
-        List<List<String>> param_classnames = getParamsClassNames(args);
+        List<List<String>> param_classnames = CombinationsHelper.getParamsClassNames(args);
         if (leastToMostSpecific) {
             Collections.reverse(param_classnames);
         }
@@ -131,7 +86,7 @@ public final class GenericFunctionDispatcher {
     }
 
     private static HashMap getAroundMethodBySuperClasses(Class clazz, String name, HashMap<String, HashMap> paramsMap, Object[] params) {
-        List<List<String>> paramsClassNames = getParamsClassNames(params);
+        List<List<String>> paramsClassNames = CombinationsHelper.getParamsClassNames(params);
         for (List<String> param : paramsClassNames) {
             String joined = String.join("#", param);
             if (paramsMap.containsKey(joined) && !usedAroundMethods.contains(joined)){
@@ -150,9 +105,6 @@ public final class GenericFunctionDispatcher {
             gFunAfterMap.put(clazz, getInitTableForAnnotation(clazz, AfterMethod.class));
             gFunAroundMap.put(clazz, getInitTableForAnnotation(clazz, AroundMethod.class));
         }
-        HashMap<String, HashMap> paramsMap = gFunBaseMap.get(clazz).get(name);
-        HashMap superMethodMap = getMethodBySuperclasses(paramsMap, args);
-        HashMap<String, Object> cachedMethodMap = (HashMap<String, Object>) superMethodMap.get("cached");
 
         HashMap<String, HashMap> aroundParamsMap = gFunAroundMap.get(clazz).get(name);
         if (aroundParamsMap != null) {
@@ -162,35 +114,7 @@ public final class GenericFunctionDispatcher {
                 return aroundMethod.invoke(null, args);
             }
         }
-
-        if (cachedMethodMap.isEmpty()){
-//            System.err.println("going the long way...");
-            List<Method> beforeMethods = invokeAllValidMethodsFromMap(gFunBeforeMap.get(clazz).get(name), false, args);
-            Method superMethod = (Method) superMethodMap.get("method");
-            Object invocation_result = superMethod.invoke(null, args);
-            List<Method> afterMethods = invokeAllValidMethodsFromMap(gFunAfterMap.get(clazz).get(name), true, args);
-
-            cachedMethodMap.put("before", beforeMethods);
-            cachedMethodMap.put("base", superMethod);
-            cachedMethodMap.put("after", afterMethods);
-            return invocation_result;
-        }
-        else {
-//            System.out.println("using cached effective method");
-            List<Method> beforeMethods = (List<Method>) cachedMethodMap.get("before");
-            for (Method beforeMethod : beforeMethods) {
-                beforeMethod.invoke(null, args);
-            }
-
-            Method baseMethod = (Method) cachedMethodMap.get("base");
-            Object base_result = baseMethod.invoke(null, args);
-
-            List<Method> afterMethods = (List<Method>) cachedMethodMap.get("after");
-            for (Method afterMethod : afterMethods) {
-                afterMethod.invoke(null, args);
-            }
-            return base_result;
-        }
+        return invokeApplicableMethods(clazz, name, args);
     }
 
     public static Object callNextMethod(Class clazz, String name, Object[] args) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {

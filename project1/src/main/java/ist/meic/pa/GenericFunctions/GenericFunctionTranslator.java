@@ -4,8 +4,6 @@ import javassist.*;
 import javassist.expr.ExprEditor;
 import javassist.expr.MethodCall;
 
-import java.util.Arrays;
-
 public class GenericFunctionTranslator implements Translator{
 
     @Override
@@ -16,9 +14,7 @@ public class GenericFunctionTranslator implements Translator{
     @Override
     public void onLoad(ClassPool pool, String classname) throws NotFoundException, CannotCompileException {
         CtClass ctClass = pool.get(classname);
-        if (ctClass.hasAnnotation(GenericFunction.class) || Arrays.stream(ctClass.getMethods()).map(CtMethod::getName).anyMatch(name -> name.equals("main"))) {
-            doThings(ctClass);
-        }
+        doThings(ctClass);
     }
 
     private void doThings(CtClass ctClass) throws CannotCompileException {
@@ -36,5 +32,4 @@ public class GenericFunctionTranslator implements Translator{
         }
         ctClass.debugWriteFile();
     }
-
 }

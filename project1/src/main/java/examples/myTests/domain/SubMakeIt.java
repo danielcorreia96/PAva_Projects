@@ -5,3 +5,4 @@ public class SubMakeIt extends MakeIt {
         System.out.println("Who are you? Calling MakeIt now...");
         MakeIt.ddouble(o);
     }
+}

@@ -1,6 +1,5 @@
 package examples.myTests;
 
-import examples.myTests.domain.MakeIt;
 import examples.myTests.domain.C1;
 
 public class TestC5 {

@@ -227,6 +227,32 @@ task specialTestCases {
     }
 }
 
+
+
+task myTestCases {
+    dependsOn 'compileJava'
+    [
+//            "examples.myTests.TestC4",
+//            "examples.myTests.TestC5",
+//            "examples.myTests.TestC6",
+//            "examples.myTests.TestC7",
+//            "examples.myTests.TestC8",
+//            "examples.myTests.TestC9",
+    ].each { file ->
+        doLast {
+            println ""
+            println file
+            javaexec {
+                ignoreExitValue true
+                classpath = sourceSets.main.runtimeClasspath
+                main = mainClassName
+                args = [file]
+            }
+            println ""
+        }
+    }
+}
+
 test {
     forkEvery = 1
 }

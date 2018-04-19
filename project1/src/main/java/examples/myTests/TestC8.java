@@ -1,5 +1,7 @@
 package examples.myTests;
 
+import examples.myTests.domain.Black;
+import examples.myTests.domain.Blue;
 import examples.myTests.domain.Color;
 import examples.myTests.domain.Red;
 

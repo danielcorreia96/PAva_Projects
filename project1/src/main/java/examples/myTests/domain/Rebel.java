@@ -3,15 +3,15 @@ package examples.myTests.domain;
 import ist.meic.pa.GenericFunctions.GenericFunction;
 
 @GenericFunction
-interface Rebel {
+public interface Rebel {
     public static void doSomething(Object o){
         System.out.println("I'm lazy with Objects. Calling Color bro");
-        Color.mix(o);
+        System.out.println(Color.mix(o));
     }
 
     public static void doSomething(String s){
         System.out.println("I'm lazy with Strings. Calling Color bro");
-        Color.mix(s);
+        System.out.println(Color.mix(s));
     }
 
     public static void doSomething(Color c){
