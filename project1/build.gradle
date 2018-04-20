@@ -16,7 +16,7 @@ plugins {
 
 // Define the main class for the application
 mainClassName = 'ist.meic.pa.GenericFunctions.WithGenericFunction'
-def extendedmainClassName = 'ist.meic.pa.GenericFunctionsExtended.WithGenericFunction'
+def extendedMainClassName = 'ist.meic.pa.GenericFunctionsExtended.WithGenericFunction'
 
 dependencies {
     // This dependency is found on compile classpath of this component and consumers.
@@ -41,7 +41,6 @@ jar {
     manifest {
         attributes 'Main-Class': mainClassName
     }
-    // from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
 }
 
 test {
@@ -120,7 +119,7 @@ task runExtendedColor(type: JavaExec) {
     description = "Runs extended version of enunciado.ColorApp example"
     classpath = sourceSets.main.runtimeClasspath
     args = ["examples.enunciado.ColorApp"] // working
-    main = extendedmainClassName
+    main = extendedMainClassName
 }
 
 task runExtendedExplain(type: JavaExec) {
@@ -128,7 +127,7 @@ task runExtendedExplain(type: JavaExec) {
     description = "Runs extended version of enunciado.ExplainApp example"
     classpath = sourceSets.main.runtimeClasspath
     args = ["examples.enunciado.ExplainApp"] // working
-    main = extendedmainClassName
+    main = extendedMainClassName
 }
 
 task runExtendedCachedColor(type: JavaExec) {
@@ -136,7 +135,7 @@ task runExtendedCachedColor(type: JavaExec) {
     description = "Runs extended version of cachedTests.ColorApp example"
     classpath = sourceSets.main.runtimeClasspath
     args = ["examples.cachedTests.ColorApp"] // working
-    main = extendedmainClassName
+    main = extendedMainClassName
 }
 
 task runExtendedCachedCom(type: JavaExec) {
@@ -144,7 +143,7 @@ task runExtendedCachedCom(type: JavaExec) {
     description = "Runs extended version of cachedTests.ComApp example"
     classpath = sourceSets.main.runtimeClasspath
     args = ["examples.cachedTests.ComApp"] // working
-    main = extendedmainClassName
+    main = extendedMainClassName
 }
 
 task runExtendedCachedDevice(type: JavaExec) {
@@ -152,7 +151,7 @@ task runExtendedCachedDevice(type: JavaExec) {
     description = "Runs extended version of cachedTests.DeviceApp example"
     classpath = sourceSets.main.runtimeClasspath
     args = ["examples.cachedTests.DeviceApp"] // working
-    main = extendedmainClassName
+    main = extendedMainClassName
 }
 
 task runExtendedCachedExplain(type: JavaExec) {
@@ -160,7 +159,7 @@ task runExtendedCachedExplain(type: JavaExec) {
     description = "Runs extended version of cachedTests.ExplainApp example"
     classpath = sourceSets.main.runtimeClasspath
     args = ["examples.cachedTests.ExplainApp"] // working
-    main = extendedmainClassName
+    main = extendedMainClassName
 }
 
 
@@ -169,7 +168,7 @@ task runExtendedAroundMethodColor(type: JavaExec) {
     description = "Runs extended version of aroundTests.ColorApp example"
     classpath = sourceSets.main.runtimeClasspath
     args = ["examples.aroundTests.ColorApp"] // working
-    main = extendedmainClassName
+    main = extendedMainClassName
 }
 
 task generateClasses {
@@ -183,14 +182,14 @@ task generateClasses {
 //        "pa.tests.TestF",
 //        "pa.tests.TestG",
 //        "pa.tests.TestH",
-        "pa.tests.TestI",
+//        "pa.tests.TestI",
 //        "pa.tests.TestJ",
 //        "pa.tests.TestK",
 //        "pa.tests.TestL",
 //        "pa.tests.TestM",
-//        "pa.tests.TestN",
+        "pa.tests.TestN",
 //        "pa.tests.TestO",
-        "pa.tests.TestP",
+//        "pa.tests.TestP",
     ].each { file ->
         doLast {
             println ""

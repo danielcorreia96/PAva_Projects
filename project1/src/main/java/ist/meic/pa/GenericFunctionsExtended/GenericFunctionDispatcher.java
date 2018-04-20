@@ -1,5 +1,6 @@
 package ist.meic.pa.GenericFunctionsExtended;
 
+import com.google.common.collect.Lists;
 import ist.meic.pa.GenericFunctions.AfterMethod;
 import ist.meic.pa.GenericFunctions.BeforeMethod;
 import ist.meic.pa.GenericFunctions.CombinationsHelper;
@@ -7,11 +8,7 @@ import ist.meic.pa.GenericFunctions.CombinationsHelper;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public final class GenericFunctionDispatcher {
@@ -19,11 +16,27 @@ public final class GenericFunctionDispatcher {
         // This an utility class, which means it should never be instantiated
     }
 
-    private static HashMap<Class, HashMap<String, HashMap<String, HashMap>>> gFunBaseMap = new HashMap<>();
+    private static HashMap<Class, HashMap<String, HashMap<String, HashMap>>> gFunPrimaryMap = new HashMap<>();
     private static HashMap<Class, HashMap<String, HashMap<String, HashMap>>> gFunBeforeMap = new HashMap<>();
     private static HashMap<Class, HashMap<String, HashMap<String, HashMap>>> gFunAfterMap = new HashMap<>();
     private static HashMap<Class, HashMap<String, HashMap<String, HashMap>>> gFunAroundMap = new HashMap<>();
     private static List<String> usedAroundMethods = new ArrayList<>();
+
+    private static String buildParamsId(List<String> params){
+        // Encapsulate parameters id building logic
+        return String.join("#", params);
+    }
+
+    private static Object invokeMethod(Method method, Object[] args)  {
+        // Encapsulate mandatory try/catch when invoking a method with reflection
+        try {
+            return method.invoke(null, args);
+        }
+        catch (IllegalAccessException | InvocationTargetException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
 
     private static HashMap<String, HashMap<String, HashMap>> getInitTableForAnnotation(Class clazz, Class<? extends Annotation> annotationClass){
         HashMap<String, HashMap<String, HashMap>> clazz_methods = new HashMap<>();
@@ -56,51 +69,47 @@ public final class GenericFunctionDispatcher {
         return clazz_methods;
     }
 
-
-    private static HashMap getMethodBySuperclasses(HashMap<String, HashMap> paramsMap, Object[] params) throws NoSuchMethodException {
-        List<List<String>> paramsClassNames = CombinationsHelper.getParamsClassNames(params);
-        return paramsMap.get(paramsClassNames.stream()
-                .map(strings -> String.join("#", strings)).filter(paramsMap::containsKey).findFirst()
-                .orElseThrow(() -> new NoSuchMethodException("Unable to find a primary method during multiple dispatch")));
+    private static List<String> getParamsIdCombinations(Object[] params, boolean leastToMostSpecific) {
+        // Get all possible id combinations for the input parameters
+        List<String> paramsIdCombinations = CombinationsHelper.getSuperCombinations(params).stream()
+                .map(combination -> Lists.transform(combination, Class::getName))
+                .map(GenericFunctionDispatcher::buildParamsId)
+                .collect(Collectors.toList());
+        // Reverse order of precedence list if we want least to most specific ordering (e.g. after methods)
+        return leastToMostSpecific ? Lists.reverse(paramsIdCombinations) : paramsIdCombinations;
     }
 
-    private static List<Method> invokeAllValidMethodsFromMap(HashMap<String, HashMap> paramsMap, boolean leastToMostSpecific, Object[] args) throws InvocationTargetException, IllegalAccessException {
-        List<Method> invokedMethods = new ArrayList<>();
-        if (paramsMap == null) {
-            return invokedMethods;
-        }
-
-        List<List<String>> param_classnames = CombinationsHelper.getParamsClassNames(args);
-        if (leastToMostSpecific) {
-            Collections.reverse(param_classnames);
-        }
-        for (List<String> paramClasses : param_classnames) {
-            String joined = String.join("#", paramClasses);
-            if (paramsMap.containsKey(joined)){
-                Method method = (Method) paramsMap.get(joined).get("method");
-                method.invoke(null, args);
-                invokedMethods.add(method);
-            }
-        }
-        return invokedMethods;
+    private static HashMap getPrimaryMethod(HashMap<String, HashMap> primaryParamsMap, Object[] params) throws NoSuchMethodException {
+        // Find most specific primary method according to input parameters types and available primary methods
+        return primaryParamsMap.get(getParamsIdCombinations(params, false).stream()
+                .filter(primaryParamsMap::containsKey).findFirst()
+                .orElseThrow(() -> new NoSuchMethodException("Unable to find a primary method during multiple dispatch"))
+        );
     }
 
-    private static HashMap getAroundMethodBySuperClasses(Class clazz, String name, HashMap<String, HashMap> paramsMap, Object[] params) {
-        List<List<String>> paramsClassNames = CombinationsHelper.getParamsClassNames(params);
-        for (List<String> param : paramsClassNames) {
-            String joined = String.join("#", param);
-            if (paramsMap.containsKey(joined) && !usedAroundMethods.contains(joined)){
-                HashMap methodcacheMap = paramsMap.get(joined);
-                usedAroundMethods.add(joined);
-                return methodcacheMap;
+    private static List<Method> invokeApplicableMethodsFromMap(HashMap<String, HashMap> paramsMap, boolean leastToMostSpecific, Object[] args) {
+        List<Method> applicableMethods = getParamsIdCombinations(args, leastToMostSpecific).stream()
+                .map(paramsMap::get).filter(Objects::nonNull)
+                .map(validMap -> (Method) validMap.get("method")).collect(Collectors.toList());
+
+        applicableMethods.forEach(method -> invokeMethod(method, args));
+        return applicableMethods;
+    }
+
+    private static HashMap getAroundMethodBySuperClasses(HashMap<String, HashMap> paramsMap, Object[] params) {
+        for (String paramsId : GenericFunctionDispatcher.getParamsIdCombinations(params, false)) {
+            if (paramsMap.containsKey(paramsId) && !usedAroundMethods.contains(paramsId)){
+                HashMap methodCacheMap = paramsMap.get(paramsId);
+                usedAroundMethods.add(paramsId);
+                return methodCacheMap;
             }
         }
         return null;
     }
 
-    public static Object invokeSpecific(Class clazz, String name, Object[] args) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
-        if (!gFunBaseMap.containsKey(clazz)) {
-            gFunBaseMap.put(clazz, getInitTableForAnnotation(clazz, null));
+    public static Object invokeSpecific(Class clazz, String name, Object[] args) throws NoSuchMethodException {
+        if (!gFunPrimaryMap.containsKey(clazz)) {
+            gFunPrimaryMap.put(clazz, getInitTableForAnnotation(clazz, null));
             gFunBeforeMap.put(clazz, getInitTableForAnnotation(clazz, BeforeMethod.class));
             gFunAfterMap.put(clazz, getInitTableForAnnotation(clazz, AfterMethod.class));
             gFunAroundMap.put(clazz, getInitTableForAnnotation(clazz, AroundMethod.class));
@@ -108,19 +117,19 @@ public final class GenericFunctionDispatcher {
 
         HashMap<String, HashMap> aroundParamsMap = gFunAroundMap.get(clazz).get(name);
         if (aroundParamsMap != null) {
-            HashMap aroundMethodMap = getAroundMethodBySuperClasses(clazz, name, aroundParamsMap, args);
+            HashMap aroundMethodMap = getAroundMethodBySuperClasses(aroundParamsMap, args);
             if (aroundMethodMap != null && aroundMethodMap.get("method") != null){
                 Method aroundMethod = (Method) aroundMethodMap.get("method");
-                return aroundMethod.invoke(null, args);
+                return invokeMethod(aroundMethod, args);
             }
         }
         return invokeApplicableMethods(clazz, name, args);
     }
 
-    public static Object callNextMethod(Class clazz, String name, Object[] args) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
+    public static Object callNextMethod(Class clazz, String name, Object[] args) throws NoSuchMethodException {
         Object[] actual_args = (Object[]) args[0];
         HashMap<String, HashMap> aroundParamsMap = gFunAroundMap.get(clazz).get(name);
-        HashMap aroundMethodMap = getAroundMethodBySuperClasses(clazz, name, aroundParamsMap, args);
+        HashMap aroundMethodMap = getAroundMethodBySuperClasses(aroundParamsMap, args);
 
         if (aroundMethodMap != null && !aroundMethodMap.isEmpty()) {
             // if i found an aroundmethod, then i remove it from used before going recursively with invokeSpecific, because i'm an idiot :)
@@ -137,36 +146,39 @@ public final class GenericFunctionDispatcher {
 
     }
 
-    private static Object invokeApplicableMethods(Class clazz, String name, Object[] args) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
-        HashMap<String, HashMap> paramsMap = gFunBaseMap.get(clazz).get(name);
-        HashMap superMethodMap = getMethodBySuperclasses(paramsMap, args);
-        HashMap<String, Object> cachedMethodMap = (HashMap<String, Object>) superMethodMap.get("cached");
-        if (cachedMethodMap.isEmpty()){
-//            System.err.println("going the long way...");
-            List<Method> beforeMethods = invokeAllValidMethodsFromMap(gFunBeforeMap.get(clazz).get(name), false, args);
-            Method superMethod = (Method) superMethodMap.get("method");
-            Object invocation_result = superMethod.invoke(null, args);
-            List<Method> afterMethods = invokeAllValidMethodsFromMap(gFunAfterMap.get(clazz).get(name), true, args);
+    private static Object invokeApplicableMethods(Class clazz, String name, Object[] args) throws NoSuchMethodException {
+        HashMap primaryMethodMap = getPrimaryMethod(gFunPrimaryMap.get(clazz).get(name), args);
+        HashMap<String, Object> cachedMethodMap = (HashMap<String, Object>) primaryMethodMap.get("cached");
 
-            cachedMethodMap.put("before", beforeMethods);
-            cachedMethodMap.put("base", superMethod);
-            cachedMethodMap.put("after", afterMethods);
+        if (cachedMethodMap.isEmpty()){
+            if (gFunBeforeMap.get(clazz).get(name) != null){
+                List<Method> beforeMethods = invokeApplicableMethodsFromMap(gFunBeforeMap.get(clazz).get(name), false, args);
+                cachedMethodMap.put("before", beforeMethods);
+            }
+
+            // Call most specific primary method
+            Method primaryMethod = (Method) getPrimaryMethod(gFunPrimaryMap.get(clazz).get(name), args).get("method");
+            Object invocation_result = invokeMethod(primaryMethod, args);
+            cachedMethodMap.put("base", primaryMethod);
+
+            // Call applicable after methods (order: least specific to most specific)
+            if (gFunAfterMap.get(clazz).get(name) != null) {
+                List<Method> afterMethods = invokeApplicableMethodsFromMap(gFunAfterMap.get(clazz).get(name), true, args);
+                cachedMethodMap.put("after", afterMethods);
+            }
             return invocation_result;
         }
         else {
-//            System.out.println("using cached effective method");
+//            System.err.println("using cached effective method");
             List<Method> beforeMethods = (List<Method>) cachedMethodMap.get("before");
-            for (Method beforeMethod : beforeMethods) {
-                beforeMethod.invoke(null, args);
-            }
+            Optional.ofNullable(beforeMethods).ifPresent(methods -> methods.forEach(method -> invokeMethod(method, args)));
 
             Method baseMethod = (Method) cachedMethodMap.get("base");
-            Object base_result = baseMethod.invoke(null, args);
+            Object base_result = invokeMethod(baseMethod, args);
 
             List<Method> afterMethods = (List<Method>) cachedMethodMap.get("after");
-            for (Method afterMethod : afterMethods) {
-                afterMethod.invoke(null, args);
-            }
+            Optional.ofNullable(afterMethods).ifPresent(methods -> methods.forEach(method -> invokeMethod(method, args)));
+
             return base_result;
         }
     }

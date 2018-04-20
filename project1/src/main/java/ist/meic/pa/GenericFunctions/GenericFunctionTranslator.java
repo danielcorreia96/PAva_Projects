@@ -14,17 +14,17 @@ public class GenericFunctionTranslator implements Translator{
     @Override
     public void onLoad(ClassPool pool, String classname) throws NotFoundException, CannotCompileException {
         CtClass ctClass = pool.get(classname);
-        doThings(ctClass);
+        replaceGenericFunctionCalls(ctClass);
     }
 
-    private void doThings(CtClass ctClass) throws CannotCompileException {
-        // replace recursive method calls inside a GenericFunction annotated element
+    private void replaceGenericFunctionCalls(CtClass ctClass) throws CannotCompileException {
+        // GenericFunction method calls in any class by the GenericFunctionDispatcher delegator function
         for (CtMethod ctMethod : ctClass.getDeclaredMethods()) {
             ctMethod.instrument(new ExprEditor() {
                 public void edit(MethodCall m) throws CannotCompileException {
                     try {
                         if (m.getMethod().getDeclaringClass().hasAnnotation(GenericFunction.class)){
-                            m.replace("{ $_ = ($r) GenericFunctionDispatcher.invokeSpecific($class, \"" + m.getMethodName() + "\", ($args)); }");
+                            m.replace("{ $_ = ($r) GenericFunctionDispatcher.invokeGenericFunction($class, \"" + m.getMethodName() + "\", ($args)); }");
                         }
                     } catch (NotFoundException e) { e.printStackTrace(); }
                 }

@@ -1,69 +1,64 @@
 package ist.meic.pa.GenericFunctions;
 
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
+
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
+
+/**
+ *
+ * The CombinationsHelper class is an utility class responsible for handling parameters types combinations logic
+ *  necessary to support multiple dispatch features.
+ *
+ * Core Features
+ *  1. For a set of parameters, generate a list of combinations using each parameter's type class and interface hierarchy
+ *
+ */
 public final class CombinationsHelper {
     private CombinationsHelper() {
-        // This an utility class, which means it should never be instantiated
+        // This is an utility class, which means it should never be instantiated.
+        // Thus, the class is final and has an empty private constructor.
     }
 
-    private static List<List<Class>> getNextCombinations(List<List<Class>> current_combs, List<Class> tmp) {
-        List<List<Class>> next_combs = new ArrayList<>();
-
-        for (List<Class> current_comb : current_combs) {
-            // 1. For each current combination
-            for (Class aClass : tmp) {
-                // 2. Make a new list containing the current combination + an element from tmp and add it to the result
-                List<Class> comb = new ArrayList<>(current_comb);
-                comb.add(aClass);
-                next_combs.add(comb);
+    private static List<List<Class>> getNextCombinations(List<List<Class>> currentCombinations, List<Class> nextParamClasses) {
+        // Build the next combinations using each one of the current combinations + each class from the next parameter class tree.
+        List<List<Class>> nextCombinations = new ArrayList<>();
+        for (List<Class> currentCombination : currentCombinations) {
+            for (Class paramClass : nextParamClasses) {
+                List<Class> combination = Lists.newArrayList(currentCombination);
+                combination.add(paramClass);
+                nextCombinations.add(combination);
             }
         }
-        return next_combs;
+        return nextCombinations;
     }
 
-    private static List<List<Class>> getSuperCombinations(Object[] params) {
-        // 1. Convert params Object[] to list of Classes
-        List<Class> param_classes = Arrays.stream(params).map(Object::getClass).collect(Collectors.toList());
+    public static List<List<Class>> getSuperCombinations(Object[] params) {
+        List<Class> paramsClasses = Lists.transform(Arrays.asList(params), Object::getClass);
 
-        // 2. Build list of sublists where each sublist contains the whole class tree for a parameter until Object.class
-        // Example: two parameters: (1) String and (2) Integer
-        //  returns [ [java.lang.String, interface Comparable, ... , Object], [Integer, ... , Number, ..., Object] ]
-        List<List<Class>> params_all_supers = new ArrayList<>();
-        for (Class param_class : param_classes) {
-            List<Class> class_tree = new ArrayList<>();
-            class_tree.add(param_class);
-            class_tree.addAll(Arrays.asList(param_class.getInterfaces()));
-
-            while (!param_class.equals(Object.class)) {
-                param_class = param_class.getSuperclass();
-                class_tree.add(param_class);
-                class_tree.addAll(Arrays.asList(param_class.getInterfaces()));
+        // Build list of sublists where each sublist contains the whole class+interface tree for a parameter until Object.class
+        // Example: two parameters String and Integer
+        //          returns [ [java.lang.String, interface Comparable, ... , Object], [Integer, ... , Number, ..., Object] ]
+        List<List<Class>> paramsClassTrees = new ArrayList<>();
+        for (Class paramClass : paramsClasses) {
+            List<Class> classTree = Lists.newArrayList(Lists.asList(paramClass, paramClass.getInterfaces()));
+            while (!paramClass.equals(Object.class)) {
+                paramClass = paramClass.getSuperclass();
+                classTree.addAll(Lists.asList(paramClass, paramClass.getInterfaces()));
             }
-            params_all_supers.add(class_tree);
+            paramsClassTrees.add(classTree);
         }
 
-        // 3. Generate combinations of sublists
-        List<List<Class>> combinations = new ArrayList<>();
-        for (List<Class> params_all_super : params_all_supers) {
-            if (combinations.isEmpty()) {
-                // Initial case: spread the first param sublist into multiple sublists
-                combinations = params_all_super.stream().map(aClass -> new ArrayList<>(Collections.singleton(aClass))).collect(Collectors.toList());
-            }
-            else {
-                combinations = getNextCombinations(combinations, params_all_super);
-            }
+        // Generate combinations of sublists
+        // Initial state: spread the first param sublist into multiple sublists (skip it in the for loop)
+        List<List<Class>> combinations = Lists.partition(paramsClassTrees.get(0), 1);
+        for (List<Class> paramClassTree : Iterables.skip(paramsClassTrees,1)) {
+            combinations = getNextCombinations(combinations, paramClassTree);
         }
         return combinations;
     }
 
-    public static List<List<String>> getParamsClassNames(Object[] params) {
-        return getSuperCombinations(params).stream()
-                .map(combination -> combination.stream().map(Class::getName).collect(Collectors.toList()))
-                .collect(Collectors.toList());
-    }
 }
