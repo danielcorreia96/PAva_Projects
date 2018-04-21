@@ -1,6 +1,11 @@
 package ist.meic.pa.GenericFunctions;
 
-import javassist.*;
+import javassist.CannotCompileException;
+import javassist.ClassPool;
+import javassist.CtClass;
+import javassist.CtMethod;
+import javassist.NotFoundException;
+import javassist.Translator;
 import javassist.expr.ExprEditor;
 import javassist.expr.MethodCall;
 
@@ -24,12 +29,11 @@ public class GenericFunctionTranslator implements Translator{
                 public void edit(MethodCall m) throws CannotCompileException {
                     try {
                         if (m.getMethod().getDeclaringClass().hasAnnotation(GenericFunction.class)){
-                            m.replace("{ $_ = ($r) GenericFunctionDispatcher.invokeGenericFunction($class, \"" + m.getMethodName() + "\", ($args)); }");
+                            m.replace(String.format("{ $_ = ($r) GenericFunctionDispatcher.invokeGenericFunction($class, \"%s\", ($args)); }", m.getMethodName()));
                         }
                     } catch (NotFoundException e) { e.printStackTrace(); }
                 }
             });
         }
-        ctClass.debugWriteFile();
     }
 }
