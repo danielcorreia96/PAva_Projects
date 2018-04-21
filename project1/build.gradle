@@ -56,125 +56,74 @@ test {
 
 def EXAMPLES_GROUP = "Examples Apps"
 
-task runColor(type: JavaExec) {
-    group = EXAMPLES_GROUP
-    description = "Runs enunciado.ColorApp example"
-    classpath = sourceSets.main.runtimeClasspath
-    args = ["examples.enunciado.ColorApp"] // working
-    main = mainClassName
-}
-
-task runCom(type: JavaExec) {
-    group = EXAMPLES_GROUP
-    description = "Runs ComApp example"
-    classpath = sourceSets.main.runtimeClasspath
-    args = ["examples.enunciado.ComApp"]  // working
-    main = mainClassName
-}
-
-task runDevice(type: JavaExec) {
-    group = EXAMPLES_GROUP
-    description = "Runs DeviceApp example"
-    classpath = sourceSets.main.runtimeClasspath
-    args = ["examples.enunciado.DeviceApp"] // working
-    main = mainClassName
-}
-
-task runExplain(type: JavaExec) {
-    group = EXAMPLES_GROUP
-    description = "Runs ExplainApp example"
-    classpath = sourceSets.main.runtimeClasspath
-    args = ["examples.enunciado.ExplainApp"]
-    main = mainClassName
-}
-
-task runOldSimpleAddApp(type: JavaExec) {
-    group = EXAMPLES_GROUP
-    description = "Runs oldTests.SimpleAddApp example"
-    classpath = sourceSets.main.runtimeClasspath
-    args = ["examples.oldTests.SimpleAddApp"]
-    main = mainClassName
-}
-
-task runMyImplementsColorApp(type: JavaExec) {
-    group = EXAMPLES_GROUP
-    description = "Runs myTests.ImplementsColorApp example"
-    classpath = sourceSets.main.runtimeClasspath
-    args = ["examples.myTests.ImplementsColorApp"]
-    main = mainClassName
-}
-
-task runAll {
+task runBasicEnunciado {
     group = EXAMPLES_GROUP
     description = "Runs all examples apps"
-    dependsOn 'runColor'
-    dependsOn 'runCom'
-    dependsOn 'runDevice'
-    dependsOn 'runExplain'
-    dependsOn 'runOldSimpleAddApp'
+    dependsOn 'compileJava'
+    [
+            "examples.enunciado.ColorApp",
+            "examples.enunciado.ComApp",
+            "examples.enunciado.DeviceApp",
+            "examples.enunciado.ExplainApp",
+    ].each { file ->
+        doLast {
+            println ""
+            println file
+            javaexec {
+                ignoreExitValue true
+                classpath = sourceSets.main.runtimeClasspath
+                main = mainClassName
+                args = [file]
+            }
+            println ""
+        }
+    }
 }
 
-task runExtendedColor(type: JavaExec) {
+task runExtendedAroundMethodVoidColor(type: JavaExec) {
     group = EXAMPLES_GROUP
-    description = "Runs extended version of enunciado.ColorApp example"
+    description = "Runs extended version of aroundTests.VoidColorApp example"
     classpath = sourceSets.main.runtimeClasspath
-    args = ["examples.enunciado.ColorApp"] // working
+    args = ["examples.aroundTests.VoidColorApp"] // working
     main = extendedMainClassName
 }
 
-task runExtendedExplain(type: JavaExec) {
+task runExtendedAroundMethodStringColor(type: JavaExec) {
     group = EXAMPLES_GROUP
-    description = "Runs extended version of enunciado.ExplainApp example"
+    description = "Runs extended version of aroundTests.StringColorApp example"
     classpath = sourceSets.main.runtimeClasspath
-    args = ["examples.enunciado.ExplainApp"] // working
+    args = ["examples.aroundTests.StringColorApp"] // working
     main = extendedMainClassName
 }
 
-task runExtendedCachedColor(type: JavaExec) {
+task runExtendedCached {
     group = EXAMPLES_GROUP
-    description = "Runs extended version of cachedTests.ColorApp example"
-    classpath = sourceSets.main.runtimeClasspath
-    args = ["examples.cachedTests.ColorApp"] // working
-    main = extendedMainClassName
-}
-
-task runExtendedCachedCom(type: JavaExec) {
-    group = EXAMPLES_GROUP
-    description = "Runs extended version of cachedTests.ComApp example"
-    classpath = sourceSets.main.runtimeClasspath
-    args = ["examples.cachedTests.ComApp"] // working
-    main = extendedMainClassName
-}
-
-task runExtendedCachedDevice(type: JavaExec) {
-    group = EXAMPLES_GROUP
-    description = "Runs extended version of cachedTests.DeviceApp example"
-    classpath = sourceSets.main.runtimeClasspath
-    args = ["examples.cachedTests.DeviceApp"] // working
-    main = extendedMainClassName
-}
-
-task runExtendedCachedExplain(type: JavaExec) {
-    group = EXAMPLES_GROUP
-    description = "Runs extended version of cachedTests.ExplainApp example"
-    classpath = sourceSets.main.runtimeClasspath
-    args = ["examples.cachedTests.ExplainApp"] // working
-    main = extendedMainClassName
-}
-
-
-task runExtendedAroundMethodColor(type: JavaExec) {
-    group = EXAMPLES_GROUP
-    description = "Runs extended version of aroundTests.ColorApp example"
-    classpath = sourceSets.main.runtimeClasspath
-    args = ["examples.aroundTests.ColorApp"] // working
-    main = extendedMainClassName
+    description = "Runs all examples apps"
+    dependsOn 'compileJava'
+    [
+        "examples.cachedTests.ColorApp",
+        "examples.cachedTests.ComApp",
+        "examples.cachedTests.DeviceApp",
+        "examples.cachedTests.ExplainApp",
+    ].each { file ->
+        doLast {
+            println ""
+            println file
+            javaexec {
+                ignoreExitValue true
+                classpath = sourceSets.main.runtimeClasspath
+                main = extendedMainClassName
+                args = [file]
+            }
+            println ""
+        }
+    }
 }
 
 task generateClasses {
     dependsOn 'compileJava'
     [
-//        "pa.tests.TestA",
+        "pa.tests.TestA",
 //        "pa.tests.TestB",
 //        "pa.tests.TestC",
 //        "pa.tests.TestD",
@@ -187,7 +136,7 @@ task generateClasses {
 //        "pa.tests.TestK",
 //        "pa.tests.TestL",
 //        "pa.tests.TestM",
-        "pa.tests.TestN",
+//        "pa.tests.TestN",
 //        "pa.tests.TestO",
 //        "pa.tests.TestP",
     ].each { file ->
@@ -195,6 +144,7 @@ task generateClasses {
             println ""
             println file
             javaexec {
+                ignoreExitValue true
                 classpath = sourceSets.main.runtimeClasspath
                 main = mainClassName
                 args = [file]
@@ -231,7 +181,7 @@ task specialTestCases {
 task myTestCases {
     dependsOn 'compileJava'
     [
-//            "examples.myTests.TestC4",
+            "examples.myTests.TestC4",
 //            "examples.myTests.TestC5",
 //            "examples.myTests.TestC6",
 //            "examples.myTests.TestC7",

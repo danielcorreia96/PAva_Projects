@@ -30,10 +30,10 @@ public class GenericFunctionTranslator implements Translator{
                 public void edit(MethodCall m) throws CannotCompileException {
                     try {
                         if (ctMethod.hasAnnotation(AroundMethod.class) && m.getMethodName().equals("callNextMethod")){
-                            m.replace(String.format("{ $_ = ($r) GenericFunctionDispatcher.callNextMethod(%s.class, \"%s\", ($args)); }", ctClass.getName(), ctMethod.getName()));
+                            m.replace(String.format("{ $_ = ($r) AroundMethodHelper.callNextMethod(%s.class, \"%s\", ($args)); }", ctClass.getName(), ctMethod.getName()));
                         }
                         else if (m.getMethod().getDeclaringClass().hasAnnotation(GenericFunction.class)) {
-                            m.replace(String.format("{ $_ = ($r) GenericFunctionDispatcher.invokeSpecific($class, \"%s\", ($args)); }", m.getMethodName()));
+                            m.replace(String.format("{ $_ = ($r) GenericFunctionDispatcher.invokeGenericFunction($class, \"%s\", ($args)); }", m.getMethodName()));
                         }
                     } catch (NotFoundException e) { e.printStackTrace(); }
                 }

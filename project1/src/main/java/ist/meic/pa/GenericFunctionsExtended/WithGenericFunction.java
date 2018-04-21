@@ -22,8 +22,9 @@ public class WithGenericFunction {
         }
     }
 
-    public static void callNextMethod(Object... args){
+    public static Object callNextMethod(Object... args){
         // Do nothing. This method is used as a marker in @AroundMethods to replace
         // with a javassist method that handles call-next-method functionality
+        return null;
     }
 }

@@ -1,15 +1,15 @@
-package CourseTests;
+package ExtendedVersion.CourseTests;
 
+import BaseTest.BaseTest;
 import ist.meic.pa.GenericFunctions.WithGenericFunction;
 import org.junit.Assert;
 import org.junit.Test;
-import BaseTest.BaseTest;
 
 public class TestB extends BaseTest {
 
     @Test
     public void testB() throws Throwable {
-        WithGenericFunction.main(new String[]{"pa.tests.TestB"});
+        ist.meic.pa.GenericFunctionsExtended.WithGenericFunction.main(new String[]{"pa.tests.TestB"});
         String expected = "Object\n" +
                 "Foo\n" +
                 "123\n";

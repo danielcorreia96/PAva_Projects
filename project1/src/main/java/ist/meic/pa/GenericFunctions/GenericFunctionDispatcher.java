@@ -17,9 +17,9 @@ import java.util.stream.Collectors;
  * Core Features
  *  1. Nested HashMaps containing information on available GenericFunction methods (before, primary, after).
  *      Each map has 3 levels using different keys as parameters to support several features:
- *          Level 1 (Class): support multiple GenericFunction annotated classes
- *          Level 2 (String): support multiple method names inside a GenericFunction annotated class.
- *          Level 3 (String): support multiple parameters types combinations for the same method name.
+ *          Level 1 (Class, HashMap): support multiple GenericFunction annotated classes
+ *          Level 2 (String, HashMap): support multiple method names inside a GenericFunction annotated class.
+ *          Level 3 (String, Method): support multiple parameters types combinations for the same method name.
  *
  *      Note: In Level 3, the key is built by joining the String qualified names of the parameters types using a char "#" as delimiter
  *            For example, for a method with two parameters String and Integer, the key is "java.lang.String#java.lang.Integer"
@@ -45,7 +45,7 @@ public final class GenericFunctionDispatcher {
     }
 
     private static Object invokeMethod(Method method, Object[] args)  {
-        // Encapsulate mandatory try/catch when invoking a method with reflection
+        // Encapsulate try/catch logic when invoking a method with reflection to allow free use in streams/lambdas
         try {
             return method.invoke(null, args);
         }
@@ -60,7 +60,7 @@ public final class GenericFunctionDispatcher {
         for (Method method : clazz.getDeclaredMethods()) {
             if (annotationClass == null && method.getAnnotations().length != 0) {
                 // annotationClass == null -> primary methods
-                // this if case represents "looking for primary methods, skip any auxiliary method (method that has annotations)"
+                // this if case represents "looking for primary methods, skip any auxiliary method (any method that has annotations)"
                 continue;
             }
             if (annotationClass == null || method.isAnnotationPresent(annotationClass)) {
@@ -95,18 +95,15 @@ public final class GenericFunctionDispatcher {
     }
 
     private static Method getPrimaryMethod(HashMap<String, Method> primaryParamsMap, Object[] params) throws NoSuchMethodException {
-        // Find most specific primary method according to input parameters types and available primary methods
-        String primaryMethodId = getParamsIdCombinations(params, false).stream()
-                .filter(primaryParamsMap::containsKey).findFirst()
+        return getParamsIdCombinations(params, false).stream()
+                .filter(primaryParamsMap::containsKey).findFirst().map(primaryParamsMap::get)
                 .orElseThrow(() -> new NoSuchMethodException("Unable to find a primary method during multiple dispatch"));
-        return primaryParamsMap.get(primaryMethodId);
     }
 
     private static void invokeApplicableMethodsFromMap(HashMap<String, Method> paramsMap, boolean leastToMostSpecific, Object[] args){
-        List<Method> applicableMethods = getParamsIdCombinations(args, leastToMostSpecific).stream()
-                .map(paramsMap::get).filter(Objects::nonNull).collect(Collectors.toList());
-
-        applicableMethods.forEach(method -> invokeMethod(method, args));
+        getParamsIdCombinations(args, leastToMostSpecific).stream()
+                .filter(paramsMap::containsKey).map(paramsMap::get)
+                .forEach(method -> invokeMethod(method, args));
     }
 
     public static Object invokeGenericFunction(Class clazz, String name, Object[] args) throws NoSuchMethodException {
@@ -116,6 +113,7 @@ public final class GenericFunctionDispatcher {
             gFunBeforeMap.put(clazz, getInitMapForAnnotation(clazz, BeforeMethod.class));
             gFunAfterMap.put(clazz, getInitMapForAnnotation(clazz, AfterMethod.class));
         }
+
         // Call applicable before methods (order: most specific to least specific)
         Optional.ofNullable(gFunBeforeMap.get(clazz).get(name))
                 .ifPresent(beforeParamsMap -> invokeApplicableMethodsFromMap(beforeParamsMap, false, args));

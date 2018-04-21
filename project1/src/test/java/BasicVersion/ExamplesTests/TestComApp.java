@@ -1,4 +1,4 @@
-package ExamplesTests;
+package BasicVersion.ExamplesTests;
 
 import BaseTest.BaseTest;
 import ist.meic.pa.GenericFunctions.WithGenericFunction;

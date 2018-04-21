@@ -1,4 +1,4 @@
-package CourseTests;
+package BasicVersion.CourseTests;
 
 import BaseTest.BaseTest;
 import ist.meic.pa.GenericFunctions.WithGenericFunction;

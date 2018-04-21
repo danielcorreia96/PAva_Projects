@@ -1,4 +1,4 @@
-package CourseTests;
+package BasicVersion.CourseTests;
 
 import ist.meic.pa.GenericFunctions.WithGenericFunction;
 import org.junit.Assert;
