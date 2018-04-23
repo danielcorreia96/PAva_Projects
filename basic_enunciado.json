@@ -1,0 +1,46 @@
+https: //romannurik.github.io/SlidesCodeHighlighter/
+
+
+gFunPrimaryMap = {
+    interface examples.enunciado.Com = {
+        bine = {
+                java.lang.String#java.lang.Integer = Object Com.bine(String,Integer), 
+                java.lang.Integer#java.lang.Integer =  Integer Com.bine(Integer,Integer), 
+                java.lang.String#java.lang.Object = Object Com.bine(String,Object), 
+                java.lang.Object#java.lang.Object = Object Com.bine(Object,Object)
+        }
+    }
+}
+
+
+someMap = {
+    GFClass = {
+        methodName = {
+                paramsId = Method object, 
+        }
+    }
+}
+
+
+
+gFunPrimaryMap = {
+    GFClass = {
+        methodName = {
+            paramsId = {
+                cached = {
+                    "before": List of Methods,
+                    "base": primary Method,
+                    "after": List of Methods
+                },   
+                method = Method object
+            }
+        }
+    }
+}
+
+if (m.getMethod().getDeclaringClass().hasAnnotation(GenericFunction.class)){
+    m.replace(String.format(
+        "{ $_ = ($r) GenericFunctionDispatcher.invokeGenericFunction($class, \"%s\", ($args)); }", 
+    m.getMethodName()));
+}
+
