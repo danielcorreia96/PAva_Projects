@@ -1,0 +1,5 @@
+#lang racket
+(require "preprocess.rkt")
+
+
+(process-string "var x = new HashMap<String,Integer>();")

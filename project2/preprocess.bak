@@ -1,0 +1,61 @@
+#lang racket
+(define active-tokens (make-hash))
+
+; add-active-token
+; Associates an active token with a function
+(define (add-active-token token function)
+  (hash-set! active-tokens token function)
+  )
+
+; def-active-token macro
+(define-syntax-rule (def-active-token token str function)
+  (add-active-token token (lambda str function))
+  )
+
+(define (process-string input)
+  (define result "")
+  (define rmatch (find-match input))
+  (let/ec return 
+    (if (not rmatch)
+        ((set! result input) (return result)) 
+        (match (car rmatch)
+          ((list (cons start end))
+           (set! result (string-append result (substring input 0 start) (process-string ((cadr rmatch) (substring input start)))))
+           )
+          )
+        )
+    )
+  result
+  )
+
+; Function: find-match
+; Tries to find a match in the given string for the active tokens
+; If there is a match, returns a list with the positions matched and the function associated with the token
+; Otherwise, returns false
+(define (find-match string)
+  (let/ec return
+    (for/list ([elt (in-hash-keys active-tokens)])
+      (when (regexp-match-positions elt string)
+        (return (list (regexp-match-positions elt string) (hash-ref active-tokens elt))))
+      )
+    #f
+    )
+  )
+
+
+;(process-string "var x = new HashMap<String,Integer>();")
+
+(def-active-token ";;" (str)
+  (match (regexp-match-positions "\n" str)
+    ((list (cons start end)) (substring str end))
+    (else "")))
+  
+(process-string "
+//Another great idea from our beloved client
+;;This is stupid but it’s what the client wants
+for(int i = 0; i < MAX_SIZE; i++) {
+;;Lets do it again
+//Another great idea from our beloved client
+;;This is stupid but it’s what the client wants
+for(int i = 0; i < MAX_SIZE; i++) {
+")
