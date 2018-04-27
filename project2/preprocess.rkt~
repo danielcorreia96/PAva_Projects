@@ -60,14 +60,6 @@
 
 (add-active-token "var" var-handler)
 
-; 2.2 String Interpolation
-(define (str-intstart-handler str)
-  (regexp-replace* #rx"#{([^}]*)}" str "\" + (\\1) + \"")
-)
-
-(add-active-token "#" str-intstart-handler)
-
-
 ; 2.3 Type Aliases
 (define alias-map (make-hash)) 
 (define (alias-handler str)
@@ -86,3 +78,15 @@
   )
 
 (add-active-token "alias" alias-handler)
+
+;(process-string "
+;alias Cache = ConcurrentSkipListMap<String,List<Map<String,Object>>>;
+;public static Cache mergeCaches(Cache a, Cache b) {
+;Cache temp = new Cache();
+;}")
+
+(process-string "
+alias Cache = ConcurrentSkipListMap<String,List<Map<String,Object>>>;
+public static Cache mergeCaches(Cache a, Cache b) {
+var temp = new Cache();
+}")
