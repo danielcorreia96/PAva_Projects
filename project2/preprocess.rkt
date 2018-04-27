@@ -23,8 +23,9 @@
         ((set! result input) (return result))
         (match (car rmatch)
           ((list (cons start end))
-           (set! result (string-append result (substring input 0 start)
-                                        (process-string ((cadr rmatch) (substring input end)))))
+           (set! result (string-append result 
+                                        (process-string (string-append (substring input 0 start)
+                                                         ((cadr rmatch) (substring input end))))))
            ))
         )
     )
@@ -63,15 +64,15 @@
 (define alias-map (make-hash)) 
 (define (alias-handler str)
   (let* ([eq_split (string-split str "=")]
-         [eq_split_tail (string-append* "" (list-tail eq_split 2))]
+         [eq_split_tail (string-join (list-tail eq_split 2)#:before-first "=")]
          [end_split (string-split (cadr eq_split) ";")]
-         [end_split_tail (string-append* "" (list-tail end_split 1))]
-         [alias_key (string-trim (car eq_split))]
+         [end_split_tail (string-join (list-tail end_split 1))]
+         [alias_key (pregexp (string-append "\\b" (string-trim (car eq_split)) "\\b"))]
          [alias_type (string-trim (car end_split))])
     (hash-set! alias-map alias_key alias_type)
     (def-active-token alias_key (str)
       (string-append (hash-ref alias-map alias_key) str)
-      )
+     )
     (string-append end_split_tail eq_split_tail)
     )
   )
