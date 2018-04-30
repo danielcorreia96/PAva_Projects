@@ -1,4 +1,5 @@
 #lang racket
+(define ns (variable-reference->namespace (#%variable-reference)))
 (provide add-active-token def-active-token process-string)
 (define active-tokens (make-hash))
 
@@ -69,3 +70,37 @@
 )
 
 (add-active-token "alias" alias-handler)
+
+; Extra 1
+; Definition of an active token that allows the definition 
+;  of active tokens in the file that is going to be processed
+(define (meta-token-handler input)
+  ; Execute MetaToken function
+  (let ([meta_handler (car (regexp-match #px"(?<=[{]).+?(?=[}])" input))])
+    (eval (with-input-from-string meta_handler read) ns)
+  )
+  ; Remove MetaToken definition after usage
+  (match (regexp-match-positions #px"[{].+[}]" input)
+    ((list (cons start end))
+      (substring input end)
+    )
+  )
+)
+
+(add-active-token "@MetaToken" meta-token-handler)
+(println (process-string "
+  @MetaToken{
+    (def-active-token \";;\" (str)
+      (match (regexp-match-positions \"\n\" str)
+        ((list (cons start end)) (substring str end))
+        (else \"\")
+      )
+    )
+  }
+  //Another great idea from our beloved client
+  ;;This is stupid but it’s what the client wants
+  for(int i = 0; i < MAX_SIZE; i++) {
+  ;;Lets do it again
+  //Another great idea from our beloved client
+  "
+))

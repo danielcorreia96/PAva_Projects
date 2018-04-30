@@ -8,6 +8,6 @@
    (lambda (in)
      (string-append (~a (eval (read in) ns))
                     (port->string in))))
-  )
+)
 
 (process-string "if (curYear > //eval (date-year (seconds->date (current-seconds)))) {")
