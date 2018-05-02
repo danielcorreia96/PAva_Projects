@@ -80,7 +80,7 @@
     (eval (with-input-from-string meta_handler read) ns)
   )
   ; Remove MetaToken definition after usage
-  (match (regexp-match-positions #px"[{].+[}]" input)
+  (match (regexp-match-positions #px"[{].+[}]\n\\s+" input)
     ((list (cons start end))
       (substring input end)
     )
@@ -88,19 +88,23 @@
 )
 
 (add-active-token "@MetaToken" meta-token-handler)
-(println (process-string "
-  @MetaToken{
-    (def-active-token \";;\" (str)
-      (match (regexp-match-positions \"\n\" str)
-        ((list (cons start end)) (substring str end))
-        (else \"\")
-      )
-    )
-  }
-  //Another great idea from our beloved client
-  ;;This is stupid but it’s what the client wants
-  for(int i = 0; i < MAX_SIZE; i++) {
-  ;;Lets do it again
-  //Another great idea from our beloved client
-  "
-))
+
+; Extra 2
+; Definition of active token for generation of getters and setters for Java.
+(define (gen-access-handler input)
+  (regexp-replace #px"\\s+([^{]+?)\\s+([^{]+?)\\s*;" input 
+    "\\1 \\2;\npublic \\1 get_\\2() { return this.\\2; }\npublic void set_\\2(\\1 \\2) { this.\\2 = \\2; }\n"
+  )
+)
+
+(add-active-token "@GenAccess" gen-access-handler)
+
+; Extra 3
+; Definition of active token for generation of getters and setters for a Java data class.
+(define (data-class-handler input)
+  (regexp-replace* #px"(\\s+)([^{]+?)\\s+([^{]+?)\\s*;" input 
+    "\\1\\2 \\3; \\1public \\2 get_\\3() { return this.\\3; } \\1public void set_\\3(\\2 \\3) { this.\\3 = \\3; }\n"
+  )
+)
+
+(add-active-token "@DataClass" data-class-handler)
