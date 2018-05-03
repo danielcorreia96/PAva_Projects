@@ -17,15 +17,15 @@
 ; receives a string and applies an active token rule if available
 (define (process-string input)
   (if (not (find-match input)) input
-    (let ([rmatch (find-match input)])
-      (match (car rmatch)
-        ((list (cons start end))
-          (process-string (string-append (substring input 0 start) ((cadr rmatch) (substring input end))))
+    (let* ([matched (find-match input)]
+           [matched_call (cadr matched)])
+      (match (caar matched) ((cons start end)
+        (process-string (string-append (substring input 0 start) (matched_call (substring input end))))
   ))))
 )
 
 ; find-match
-; Tries to find a match in the given string for the active tokens
+; Tries to find a match in the given string for the existing active tokens
 ; If there is a match, returns a list with the positions matched and the function associated with the token
 ; Otherwise, returns false
 (define (find-match string)
@@ -39,8 +39,12 @@
 )
 
 ; 2.1. Local Type Inference
-(def-active-token #px"\\bvar\\b" (str) 
-  (regexp-replace #px"(\\s+.+\\s*=\\s*new\\s+)(.+)(\\()" str "\\2\\1\\2\\3")
+; Example: var variable_name = new var_type(...)
+; Regex groups mapping
+; 1 -> " variable_name = new "
+; 2 -> "var_type"
+(def-active-token #px"\\bvar\\b" (str)
+  (regexp-replace #px"(\\s+.+\\s*=\\s*new\\s+)(.+)\\(" str "\\2\\1\\2(")
 )
 
 ; 2.2 String Interpolation
@@ -50,12 +54,18 @@
 
 ; 2.3 Type Aliases
 (def-active-token #px"\\balias\\b" (str)
-  (let* ([alias_name (string-trim (car (regexp-match #px".+?(?=\\s*=)" str)))]
-        [alias_key (pregexp (string-append "\\b" alias_name "\\b"))]
-        [alias_type (car (regexp-match-positions #px"(?<==).+?(?=;)" str))])
-    (match alias_type
-      ((cons start end)
-        (def-active-token alias_key (in) (string-append (string-trim (substring str start end)) in))
-        (regexp-replace* alias_key (string-trim (substring str (+ end 1))) (string-trim (substring str start end)))
-  )))
+  (let* ([alias_name (car (regexp-match #px"(?<=\\s).+?(?=\\s*=)" str))]        ; match alias name
+         [alias_type (car (regexp-match-positions #px"(?<==).+?(?=;)" str))]    ; match positions of alias type
+         [name_token  (pregexp (string-append "\\b" alias_name "\\b"))]         ; build alias name token
+         [type_start (car alias_type)]
+         [type_end (cdr alias_type)]
+         [type_regex (string-trim (substring str type_start type_end))]         ; type regex for replacement
+         [str_noalias (string-trim (substring str (+ type_end 1)))])            ; string without alias definition
+
+    ; Define active token for this alias, just in case the alias definition is after the usage
+    (def-active-token name_token (in) (string-append type_regex in))
+
+    ; Replace all occurences of this alias in the string after the definition
+    (regexp-replace* name_token str_noalias type_regex)
+  )
 )

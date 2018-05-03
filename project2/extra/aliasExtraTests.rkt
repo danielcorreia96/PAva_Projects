@@ -1,5 +1,5 @@
 #lang racket
-(require "preprocess.rkt")
+(require "preprocessextra.rkt")
 (define (run-example name input)
     (displayln (string-join (list 
         name "================Input================" input
@@ -32,6 +32,27 @@ END
         aliasyy a, 
         xaliasy b) {
     xxalias temp = new xxalias();
+    }
+END
+)
+
+(run-example "Definition after usage alias" #<<END
+    public static Cache mergeCaches(Cache a, Cache b) {
+        var temp = new Cache();
+    }
+    alias Cache = ConcurrentSkipListMap<String,List<Map<String,Integer>>>;
+END
+)
+
+(run-example "Redefinition after usage alias" 
+#<<END
+    alias Cache = ConcurrentSkipListMap<String,List<Map<String,Object>>>;
+    public static Cache mergeCaches(Cache a, Cache b) {
+        var temp = new Cache();
+    }
+    alias Cache = ConcurrentSkipListMap<String,List<Map<String,Integer>>>;
+    public static Cache mergeCaches2(Cache a, Cache b) {
+        var temp = new Cache();
     }
 END
 )
