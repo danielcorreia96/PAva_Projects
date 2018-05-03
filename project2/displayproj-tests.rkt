@@ -1,7 +1,5 @@
 #lang racket
-(require rackunit "preprocess.rkt")
-
-(displayln "Tests for preprocess.rkt")
+(require "preprocess.rkt")
 (displayln "Basic one var test")
 (displayln "====Input====")
 (displayln 
@@ -65,7 +63,24 @@ END
 ))
 (displayln "\n*************************************************************\n")
 
-
+(displayln "Name conflicts var test")
+(displayln "====Input====")
+(displayln 
+#<<END
+    var varyy = new HashMap<String,Integer>();
+    var xxvar = new HashMap<String,Object>();
+    var xvary = new HashMap<Object,Integer>();
+END
+)
+(displayln "====Output====")
+(displayln (process-string
+#<<END
+    var varyy = new HashMap<String,Integer>();
+    var xxvar = new HashMap<String,Object>();
+    var xvary = new HashMap<Object,Integer>();
+END
+))
+(displayln "\n*************************************************************\n")
 
 (displayln "String interpolation test")
 (displayln "====Input====")

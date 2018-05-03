@@ -1,35 +1,39 @@
 #lang racket
 (require "preprocess.rkt")
+(define (run-example name input)
+    (displayln (string-join (list 
+        name "================Input================" input
+        "================Output================" (process-string input)
+        "*************************************************************"
+    ) "\n"))
+)
 
-(println "")
-(println "Basic one var test")
-(process-string "var x = new HashMap<String,Integer>();")
+(run-example "Basic one var test" #<<END
+    var x = new HashMap<String,Integer>();
+END
+)
 
-(println "")
-(println "Repeated vars test")
-(process-string "var x = new HashMap<String,Integer>();     
-var x = new HashMap<String,Integer>();   
-var x = new HashMap<String,Integer>();")
+(run-example "Multiline one var test" #<<END
+    var 
+    x 
+    = 
+    new 
+    HashMap<String,Integer>(
 
-(println "")
-(println "String interpolation test")
-(process-string "static void foo(int a, int b, int c) {
-String str = #\"First #{a}, then #{a+b}, finally #{b*c}.\";
-System.out.println(str);
-}")
+    );
+END
+)
 
-(println "")
-(println "Only single alias test")
-(process-string "
-alias Cache = ConcurrentSkipListMap<String,List<Map<String,Object>>>;
-public static Cache mergeCaches(Cache a, Cache b) {
-Cache temp = new Cache();
-}")
+(run-example "Repeated vars test" #<<END
+    var x = new HashMap<String,Integer>();
+    var x = new HashMap<String,Integer>();   
+    var x = new HashMap<String,Integer>();
+END
+)
 
-(println "")
-(println "Single alias + var test")
-(process-string "
-alias Cache = ConcurrentSkipListMap<String,List<Map<String,Object>>>;
-public static Cache mergeCaches(Cache a, Cache b) {
-var temp = new Cache();
-}")
+(run-example "Name conflicts var test" #<<END
+    var varyy = new HashMap<String,Integer>();
+    var xxvar = new HashMap<String,Object>();
+    var xvary = new HashMap<Object,Integer>();
+END
+)
