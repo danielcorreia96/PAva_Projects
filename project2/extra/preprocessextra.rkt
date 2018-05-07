@@ -44,8 +44,8 @@
 ; Regex groups mapping
 ; 1 -> " variable_name = new "
 ; 2 -> "var_type"
-(def-active-token #px"\\bvar\\b" (str)
-  (regexp-replace #px"(\\s+.+\\s*=\\s*new\\s+)(.+)\\(" str "\\2\\1\\2(")
+(def-active-token #px"\\bvar " (str)
+  (regexp-replace #px"(\\s*.+?\\s*=\\s*new\\s+)(.+?)\\(" str "\\2 \\1\\2(")
 )
 
 ; 2.2 String Interpolation
@@ -61,7 +61,7 @@
          [type_start (car alias_type)]
          [type_end (cdr alias_type)]
          [type_regex (string-trim (substring str type_start type_end))]         ; type regex for replacement
-         [str_noalias (string-trim (substring str (+ type_end 1)))])            ; string without alias definition
+         [str_noalias (substring str (+ type_end 1))])                          ; string without alias definition
 
     ; Define active token for this alias, just in case the alias definition is after the usage
     (def-active-token name_token (in) (string-append type_regex in))
