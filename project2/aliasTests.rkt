@@ -25,9 +25,11 @@ END
 )
 
 (run-example "Name conflicts alias" #<<END
-    alias xxalias = ConcurrentSkipListMap<String,List<Map<String,Object>>>;
-    alias xaliasy = ConcurrentSkipListMap<String,List<Map<Integer,Object>>>;
-    alias aliasyy = ConcurrentSkipListMap<String,List<Map<String,Integer>>>;
+    alias   xxalias = ConcurrentSkipListMap<String,List<Map<String,Object>>>;
+    alias 
+    xaliasy = ConcurrentSkipListMap<String,List<Map<Integer,Object>>>;
+    alias   
+      aliasyy = ConcurrentSkipListMap<String,List<Map<String,Integer>>>;
     public static xxalias aliasmergealiasxalias(
         aliasyy a, 
         xaliasy b) {

@@ -1,0 +1,8 @@
+
+
+
+public static ConcurrentSkipListMap<String,List<Map<String,Object>>> aliasmergealiasxalias(
+    ConcurrentSkipListMap<String,List<Map<String,Integer>>> a,
+    ConcurrentSkipListMap<String,List<Map<Integer,Object>>> b) {
+ConcurrentSkipListMap<String,List<Map<String,Object>>> temp = new ConcurrentSkipListMap<String,List<Map<String,Object>>>();
+}

@@ -53,15 +53,14 @@
 )
 
 ; 2.3 Type Aliases
-(def-active-token #px"\\balias\\b" (str)
-  (let* ([alias_name (car (regexp-match #px"(?<=\\s).+?(?=\\s*=)" str))]        ; match alias name
+(def-active-token #px"\\balias " (str)
+  (let* ([alias_name (string-trim (car (regexp-match #px"\\s*.+?(?=\\s*=)" str)))]        ; match alias name
          [alias_type (car (regexp-match-positions #px"(?<==).+?(?=;)" str))]    ; match positions of alias type
          [name_token  (pregexp (string-append "\\b" alias_name "\\b"))]         ; build alias name token
          [type_start (car alias_type)]
          [type_end (cdr alias_type)]
          [type_regex (string-trim (substring str type_start type_end))]         ; type regex for replacement
          [str_noalias (substring str (+ type_end 1))])                          ; string without alias definition
-
 
     ; Replace all occurences of this alias in the string after the definition
     (regexp-replace* name_token str_noalias type_regex)
