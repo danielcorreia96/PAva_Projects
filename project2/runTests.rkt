@@ -45,5 +45,5 @@
     (current-directory original-dir)
 )
 
-(run-batch-tests "20180507app2tests/simple/" (list "mixed-tokens" "string-interpolation" "type-inference" "type-alias"))
-(run-batch-tests "mytests/" (list "alias_tests"))
+(run-batch-tests "20180507app2tests/simple/" '("mixed-tokens" "string-interpolation" "type-inference" "type-alias"))
+(run-batch-tests "mytests/" '("alias_tests"))

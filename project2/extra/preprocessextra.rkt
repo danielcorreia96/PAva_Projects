@@ -54,8 +54,8 @@
 )
 
 ; 2.3 Type Aliases
-(def-active-token #px"\\balias\\b" (str)
-  (let* ([alias_name (car (regexp-match #px"(?<=\\s).+?(?=\\s*=)" str))]        ; match alias name
+(def-active-token #px"\\balias " (str)
+  (let* ([alias_name (string-trim (car (regexp-match #px"\\s*.+?(?=\\s*=)" str)))]        ; match alias name
          [alias_type (car (regexp-match-positions #px"(?<==).+?(?=;)" str))]    ; match positions of alias type
          [name_token  (pregexp (string-append "\\b" alias_name "\\b"))]         ; build alias name token
          [type_start (car alias_type)]
@@ -110,5 +110,30 @@
 (add-active-token "@DataClass" data-class-handler)
 
 ; Extra 4
+; Switch Expressions syntax sugar
+; Inspired by https://bugs.openjdk.java.net/browse/JDK-8192963
+(define (special-switch-handler input)
+  (let* ( [switch_args (car (regexp-match #px"(?<=\\().+?(?=\\)\\s*[{])" input))]
+          [switch_var (string-trim (car (string-split switch_args ",")))]
+          [switch_arg (string-trim (cadr (string-split switch_args ",")))]
+          [var_replace (string-append "\\1\\2:\n\\1\t" switch_var " =\\3;\n\\1\tbreak;")])
+    (set! input (regexp-replace #px"(?<=\\().+?(?=\\)\\s*[{])" input switch_arg))
+    (let loop ()
+      (when (regexp-match? #px"(?<=\n)(\\s*)(\\bcase\\s+.+?)\\s*,\\s*(.+)" input)
+        (set! input (regexp-replace* #px"(?<=\n)(\\s*)(\\bcase\\s+.+?)\\s*,\\s*(.+)" input "\\1\\2 :\n\\1case \\3"))
+        (loop)
+      )
+    )
+    (set! input (regexp-replace* #px"(?<=\n)(\\s*)(\\bcase\\s+.+?\\s+)->(\\s+.+?\\s*);" input var_replace))
+    (set! input (regexp-replace #px"(?<=\n)(\\s*)(\\bdefault\\s+)->(\\s+.+?\\s*);" input var_replace))    
+    (set! input (string-append "switch" input))
+    (set! input (regexp-replace #px"switch\\s+\\(.+\\)\\s*[{].+[}]" input "\\0;"))
+    input
+  )
+)
+
+(add-active-token "special-switch" special-switch-handler)
+
+; Extra 5
 ; Support definition of multiple aliases in a single line
 ; TODO
