@@ -27,27 +27,27 @@
 (define (process-string str)
   (let ([token-pair (find-active-token str)])
     (if token-pair
-      (process-string (activate-token str (car token-pair) (cdr token-pair)))
-      str)))
+        (process-string (activate-token str (car token-pair) (cdr token-pair)))
+        str)))
 
 ; Searches the string for an active token match.
 ; On success, returns a pair with the matched token and activation function
 ; Otherwise returns false
 (define (find-active-token str)
   (for/first
-    ([(token token-function) (in-hash active-tokens)]
-      #:when (regexp-match? token str))
-      (cons token token-function)))
+      ([(token token-function) (in-hash active-tokens)]
+       #:when (regexp-match? token str))
+    (cons token token-function)))
 
 ; Applies the activation function of a given token to a string
 (define (activate-token str token token-function)
   (match (car (regexp-match-positions token str))
     ((cons start end)
-      (~a (substring str 0 start) (token-function (substring str end))))))
+     (~a (substring str 0 start) (token-function (substring str end))))))
 
 ; 2.1. Local Type Inference
 (def-active-token #px"\\bvar " (str)
-  (regexp-replace #px"(\\s*.+?\\s*=\\s*new\\s+)(.+?)\\(" str "\\2 \\1\\2("))
+  (regexp-replace #px"(\\s*.+?\\s*=\\s*new\\s+)(.+?)(?=\\()" str "\\2 \\1\\2"))
 
 ; 2.2 String Interpolation
 (def-active-token "#" (str)
