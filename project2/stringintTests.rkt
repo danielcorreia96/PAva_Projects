@@ -27,7 +27,26 @@ END
 (run-example "var/alias conflicts interpolation test" 
 #<<END
     static void foo(int a, int b, int c) {
-    String str = #"First #{" var "}, then #{"  alias  "}, finally #{b*c}.";
+    String str = #"First #{a}, then #{a+b}, finally #{b*c}.";
+    System.out.println(str);
+    }
+    // #{not string interpolation}
+END
+)
+
+(run-example "String interpolation test" #<<END
+    static void foo(int a, int b, int c) {
+    String str = #"First \\" \\\\";
+    System.out.println(str);
+    }
+END
+)
+
+
+(run-example "String interpolation test" #<<END
+    static void foo(int a, int b, int c) {
+    String str = #"First #{a}, then #{a+b}, finally #{b*c}.";
+    String str = #"batatas";
     System.out.println(str);
     }
 END

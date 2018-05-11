@@ -37,3 +37,8 @@ END
     var xvary = new HashMap<Object,Integer>();
 END
 )
+
+(run-example "Basic one var test" #<<END
+    var x = a new HashMap<String,Integer>();
+END
+)

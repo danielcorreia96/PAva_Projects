@@ -7,24 +7,13 @@
         "*************************************************************"
     ) "\n"))
 )
-(run-example "Basic special-switch Example"
+(run-example "Basic @GenAccess Example"
 #<<END
-T result;
-special-switch (result, arg) {
-    case L1 -> e1;
-    case L2 -> e2;
-    default -> e3;
-};
-END
-)
-
-(run-example "Cascade special-switch Example"
-#<<END
-T result;
-special-switch (result, arg) {
-    case L1_A, L1_B, L1_C -> e1;
-    case L2 -> e2;
-    default -> e3;
-};
+  public class Foo {
+    @GenAccess int batatas;
+    String cenas;
+    @GenAccess List<Integer> bars;
+    @GenAccess Object[] objects;
+  }
 END
 )

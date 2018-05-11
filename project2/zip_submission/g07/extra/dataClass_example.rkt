@@ -7,24 +7,14 @@
         "*************************************************************"
     ) "\n"))
 )
-(run-example "Basic special-switch Example"
-#<<END
-T result;
-special-switch (result, arg) {
-    case L1 -> e1;
-    case L2 -> e2;
-    default -> e3;
-};
-END
-)
 
-(run-example "Cascade special-switch Example"
-#<<END
-T result;
-special-switch (result, arg) {
-    case L1_A, L1_B, L1_C -> e1;
-    case L2 -> e2;
-    default -> e3;
-};
+(run-example "Basic @DataClass Example" #<<END
+    @DataClass
+    public class Foo {
+        int batatas;
+        String cenas;
+        List<Integer> bars;
+        Object[] objects;
+    }
 END
 )
