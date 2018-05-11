@@ -1,68 +1,64 @@
 #lang racket
 (provide add-active-token def-active-token process-string)
+
+; This module implements a language-independent programmable pre-processor 
+;   using active tokens and activation functions that transform the input string.
+; 
+; By default, it supports pre-processing for Java features such as:
+;   1. Local Type Inference using a token "var"
+;   2. String Interpolation using a token "#"
+;   3. Type Alias using a token "alias"
+; 
+; Code Style based on Racket Docs Style Guide
+
+; Hash Table to store active-token -> activation function assocations
 (define active-tokens (make-hash))
 
-; add-active-token
-; Associates an active token with a function
+; Associates an active token with an activation function
 (define (add-active-token token function)
-  (hash-set! active-tokens token function)
-)
+  (hash-set! active-tokens token function))
 
-; def-active-token macro
+; Macro to add active token to the pre-processor
 (define-syntax-rule (def-active-token token str function)
-  (add-active-token token (lambda str function))
-)
+  (add-active-token token (lambda str function)))
 
-; process-string
-; receives a string and applies an active token rule if available
-(define (process-string input)
-  (if (not (find-match input)) input
-    (let* ([matched (find-match input)]
-           [matched_call (cadr matched)])
-      (match (caar matched) ((cons start end)
-        (process-string (string-append (substring input 0 start) (matched_call (substring input end))))
-  ))))
-)
+; Processes a string by recursively applying active token rules
+;   until no more active tokens are found in the string.
+(define (process-string str)
+  (let ([token-pair (find-active-token str)])
+    (if token-pair
+      (process-string (activate-token str (car token-pair) (cdr token-pair)))
+      str)))
 
-; find-match
-; Tries to find a match in the given string for the existing active tokens
-; If there is a match, returns a list with the positions matched and the function associated with the token
-; Otherwise, returns false
-(define (find-match string)
-  (let/ec return
-    (for/list ([key (hash-keys active-tokens)])
-      (when (regexp-match? key string)
-        (return (list (regexp-match-positions key string) (hash-ref active-tokens key)))
-    ))
-    #f
-  )
-)
+; Searches the string for an active token match.
+; On success, returns a pair with the matched token and activation function
+; Otherwise returns false
+(define (find-active-token str)
+  (for/first
+    ([(token token-function) (in-hash active-tokens)]
+      #:when (regexp-match? token str))
+      (cons token token-function)))
+
+; Applies the activation function of a given token to a string
+(define (activate-token str token token-function)
+  (match (car (regexp-match-positions token str))
+    ((cons start end)
+      (~a (substring str 0 start) (token-function (substring str end))))))
 
 ; 2.1. Local Type Inference
-; Example: var variable_name = new var_type(...)
-; Regex groups mapping
-; 1 -> " variable_name = new "
-; 2 -> "var_type"
 (def-active-token #px"\\bvar " (str)
-  (regexp-replace #px"(\\s*.+?\\s*=\\s*new\\s+)(.+?)\\(" str "\\2 \\1\\2(")
-)
+  (regexp-replace #px"(\\s*.+?\\s*=\\s*new\\s+)(.+?)\\(" str "\\2 \\1\\2("))
 
 ; 2.2 String Interpolation
 (def-active-token "#" (str)
-  (regexp-replace* #rx"#{([^}]*)}" str "\" + (\\1) + \"")
-)
+  (regexp-replace* #rx"#{(.*?)}" str "\" + (\\1) + \""))
 
 ; 2.3 Type Aliases
-(def-active-token #px"\\balias " (str)
-  (let* ([alias_name (string-trim (car (regexp-match #px"\\s*.+?(?=\\s*=)" str)))]        ; match alias name
-         [alias_type (car (regexp-match-positions #px"(?<==).+?(?=;)" str))]    ; match positions of alias type
-         [name_token  (pregexp (string-append "\\b" alias_name "\\b"))]         ; build alias name token
-         [type_start (car alias_type)]
-         [type_end (cdr alias_type)]
-         [type_regex (string-trim (substring str type_start type_end))]         ; type regex for replacement
-         [str_noalias (substring str (+ type_end 1))])                          ; string without alias definition
-
-    ; Replace all occurences of this alias in the string after the definition
-    (regexp-replace* name_token str_noalias type_regex)
-  )
-)
+(def-active-token #px"\\balias\\s+" (str)
+  (let* ([alias-name (car (regexp-match #px".+?(?=\\s*=)" str))]
+         [name-regex (pregexp (~a "\\b" alias-name "\\b"))]
+         [type-regex (string-trim (car (regexp-match #px"(?<==).+?(?=;)" str)))])
+    ; Clear alias definition from the string
+    (set! str (regexp-replace #px".+?=.+?;" str ""))
+    ; Replace all occurences of this alias in the string after the alias definition
+    (regexp-replace* name-regex str type-regex)))

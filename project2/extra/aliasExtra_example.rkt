@@ -1,5 +1,5 @@
 #lang racket
-(require "preprocessextra.rkt")
+(require "../preprocessextra.rkt")
 (define (run-example name input)
     (displayln (string-join (list 
         name "================Input================" input
@@ -8,7 +8,7 @@
     ) "\n"))
 )
 
-(run-example "Definition after usage alias" #<<END
+(run-example "Definition after usage alias example" #<<END
     public static Cache mergeCaches(Cache a, Cache b) {
         var temp = new Cache();
     }
@@ -16,7 +16,7 @@
 END
 )
 
-(run-example "Redefinition after usage alias" 
+(run-example "Redefinition after usage alias example" 
 #<<END
     alias Cache = List<Map<String,Object>>;
     public static Cache mergeCaches(Cache a, Cache b) {

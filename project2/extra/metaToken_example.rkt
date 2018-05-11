@@ -1,5 +1,5 @@
 #lang racket
-(require "preprocessextra.rkt")
+(require "../preprocessextra.rkt")
 
 (define (run-example name input)
     (displayln (string-join (list 
@@ -9,7 +9,7 @@
     ) "\n"))
 )
 
-(run-example "Newline MetaToken test" 
+(run-example "Newline MetaToken Example" 
 #<<END
     @MetaToken{
       (def-active-token ";;" (str)

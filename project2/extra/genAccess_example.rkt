@@ -1,5 +1,5 @@
 #lang racket
-(require "preprocessextra.rkt")
+(require "../preprocessextra.rkt")
 (define (run-example name input)
     (displayln (string-join (list 
         name "================Input================" input
@@ -7,7 +7,7 @@
         "*************************************************************"
     ) "\n"))
 )
-(run-example "Basic @GenAccess Test"
+(run-example "Basic @GenAccess Example"
 #<<END
   public class Foo {
     @GenAccess int batatas;
